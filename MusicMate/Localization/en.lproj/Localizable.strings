@@ -1,0 +1,13 @@
+/* 
+  Localizable.strings
+  MusicMate
+
+  Created by Henrik Schnettler on 27.04.23.
+  
+*/
+
+//name of the app
+"appname" = "Music Mate";
+
+//Tabs
+"overview" = "Overview";
