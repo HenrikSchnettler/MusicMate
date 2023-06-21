@@ -21,10 +21,6 @@ class MusicKitManager: ObservableObject {
     
     //Keychain service in initalized
     private let keychainService = KeychainService()
-    //The key in the keychain where the developer token should be saved
-    private let developerTokenKey = "MUSICKIT_API_DEVTOKEN"
-    //The token for the musicmate api is retrieved form the xcconfig file
-    private let apiToken = Bundle.main.object(forInfoDictionaryKey: "NODEJS_API_TOKEN") as? String
     
     //The following variables notify the view if they update to it can refresh
     //@Published var authorizationStatus = SKCloudServiceAuthorizationStatus.notDetermined
