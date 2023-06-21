@@ -17,6 +17,20 @@ struct ViewOfShame: View {
                 .padding()
             
             Button(action: {
+                // the settings of the app in the system preferences should be opened
+                if let url = URL(string: UIApplication.openSettingsURLString), UIApplication.shared.canOpenURL(url) {
+                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                }
+            }) {
+                Text("Open Settings")
+                    .font(.title)
+                    .foregroundColor(.white)
+                    .padding()
+                    .background(Color.accentColor)
+                    .cornerRadius(20)
+            }
+            
+            Button(action: {
                 // app should be closed on click
                 UIControl().sendAction(#selector(URLSessionTask.suspend), to: UIApplication.shared, for: nil)
                 DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {
@@ -27,7 +41,7 @@ struct ViewOfShame: View {
                     .font(.title)
                     .foregroundColor(.white)
                     .padding()
-                    .background(Color.themeAccent)
+                    .background(Color.red)
                     .cornerRadius(20)
             }
         }
