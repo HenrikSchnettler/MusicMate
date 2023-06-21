@@ -29,7 +29,8 @@ struct MusicMateApp: App {
                 }
             }
             else{
-                //if initial authentification isnt made yet MainView shouldnt be visible instead some sort of loadin screen/splash screen
+                //if initial authentification isnt made yet MainView shouldnt be visible instead a loading screen
+                LoadingView()
             }
         }
     }

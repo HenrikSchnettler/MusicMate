@@ -11,3 +11,6 @@
 
 //Tabs
 "overview" = "Übersicht";
+
+//Other
+"loading..." = "lädt...";
