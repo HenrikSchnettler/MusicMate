@@ -37,18 +37,20 @@ class MusicKitManager: ObservableObject {
                     if(!grantSuccessfull)
                     {
                         //The user should be alerted that the app only works with apple music access
+                        self.initalAuthentificationComplete = true
                     }
                     else{
                         self.checkUserCapabilities(){capability, error in
+                            self.initalAuthentificationComplete = true
                         }
                     }
                 }
             }
             else{
                 self.checkUserCapabilities(){capability, error in
+                    self.initalAuthentificationComplete = true
                 }
             }
-            self.initalAuthentificationComplete = true
         }
     }
     

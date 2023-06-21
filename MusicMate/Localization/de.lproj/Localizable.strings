@@ -14,3 +14,6 @@
 
 //Other
 "loading..." = "lädt...";
+"Missing permissions" = "Fehlende Erlaubnis";
+"In order for MusicMate to work properly, it needs permissions to access your Apple Music/Media data. Please come back after given permissions in the settings app!" = "Damit MusicMate ordnungsgemäß funktioniert, werden Berechtigungen für den Zugriff auf Ihre Apple Music-/Mediendaten benötigt. Bitte kommen Sie zurück, nachdem Sie in der Einstellungs-App die Berechtigungen erteilt haben!";
+"Close App" = "App schließen";

@@ -14,3 +14,6 @@
 
 //Other
 "loading..." = "loading...";
+"Missing permissions" = "Missing permissions";
+"In order for MusicMate to work properly, it needs permissions to access your Apple Music/Media data. Please come back after given permissions in the settings app!" = "In order for MusicMate to work properly, it needs permissions to access your Apple Music/Media data. Please come back after given permissions in the settings app!";
+"Close App" = "Close App";

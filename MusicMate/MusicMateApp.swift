@@ -26,6 +26,7 @@ struct MusicMateApp: App {
                 }
                 else{
                     //user didnt gave permission so he cant access functionality of the app. He should be notified that he needs to give access for the app to work. The app could close after that.
+                    ViewOfShame()
                 }
             }
             else{
