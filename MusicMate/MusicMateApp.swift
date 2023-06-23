@@ -20,6 +20,7 @@ struct MusicMateApp: App {
                 if musicKitManager.appleMusicAccessGrantedByUser{
                     //user gave permission to access apple music so MainView can be shown
                     MainView()
+                        .environmentObject(musicKitManager)
                         .environment(\.managedObjectContext, persistenceController.container.viewContext)
                         .onAppear(){
                         }
@@ -27,11 +28,13 @@ struct MusicMateApp: App {
                 else{
                     //user didnt gave permission so he cant access functionality of the app. He should be notified that he needs to give access for the app to work. The app could close after that.
                     ViewOfShame()
+                        .environmentObject(musicKitManager)
                 }
             }
             else{
                 //if initial authentification isnt made yet MainView shouldnt be visible instead a loading screen
                 LoadingView()
+                    .environmentObject(musicKitManager)
             }
         }
     }
