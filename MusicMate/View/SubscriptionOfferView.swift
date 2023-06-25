@@ -9,6 +9,7 @@ import SwiftUI
 import MusicKit
 
 struct SubscriptionOfferView: View {
+    //view for showing apple music subscription offer view
     @EnvironmentObject var musicKitManager: MusicKitManager
     @State var isShowingOffer = false
 
