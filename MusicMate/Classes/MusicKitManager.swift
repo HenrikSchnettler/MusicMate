@@ -10,107 +10,50 @@ import MusicKit
 import StoreKit
 import Combine
 
+@MainActor
 class MusicKitManager: ObservableObject {
     //reference to the singleton is reachable over the static constant of the class
     static let shared = MusicKitManager()
-    
-    private init() {
-        // full authorization is made on init
-        self.performInitialAuthorization()
-    }
     
     //Keychain service in initalized
     private let keychainService = KeychainService()
     
     //The following variables notify the view if they update to it can refresh
     //@Published var authorizationStatus = SKCloudServiceAuthorizationStatus.notDetermined
-    @Published var activeAppleMusicMembership = false
     @Published var initalAuthentificationComplete = false
-    @Published var appleMusicAccessGrantedByUser = false
+    @Published var isAuthorizedForMusicKit: Bool = false
+    @Published var musicSubscription: MusicSubscription?
     
-    private func performInitialAuthorization() -> Void {
-        self.checkAppleMusicAccess() { accessIsGranted in
-            if(!accessIsGranted)
-            {
-                //If access isnt granted the user is asked to do it
-                self.requestAppleMusicAccess() { grantSuccessfull in
-                    if(!grantSuccessfull)
-                    {
-                        //The user should be alerted that the app only works with apple music access
-                        self.initalAuthentificationComplete = true
-                    }
-                    else{
-                        self.checkUserCapabilities(){capability, error in
-                            self.initalAuthentificationComplete = true
-                        }
-                    }
-                }
-            }
-            else{
-                self.checkUserCapabilities(){capability, error in
-                    self.initalAuthentificationComplete = true
-                }
-            }
+    //init of class
+    private init() {
+        Task{
+            await self.performInitialAuthorization()
+            self.initalAuthentificationComplete = true
         }
     }
     
-    private func checkAppleMusicAccess(completion: @escaping (Bool) -> Void) {
-        let status = SKCloudServiceController.authorizationStatus()
-
-        switch status {
-            case .authorized:
-                print("Access to Apple Music granted.")
-                self.appleMusicAccessGrantedByUser = true
-                completion(true)
-            case .denied, .restricted:
-                print("Access to Apple Music denied or restricted.")
-                self.appleMusicAccessGrantedByUser = false
-                completion(false)
-            case .notDetermined:
-                print("Access to Apple Music not determined.")
-                self.appleMusicAccessGrantedByUser = false
-                completion(false)
-            @unknown default:
-                print("Unknown authorization status for Apple Music.")
-                self.appleMusicAccessGrantedByUser = false
-                completion(false)
+    //Initial authorization
+    private func performInitialAuthorization() async -> Void {
+        await self.requestMusicAuthorization()
+        self.getUserCapabilities()
+    }
+    
+    //request apple music authorization
+    private func requestMusicAuthorization() async {
+        let authorizationStatus = await MusicAuthorization.request()
+        if authorizationStatus == .authorized {
+            self.isAuthorizedForMusicKit = true
+        } else {
+            self.isAuthorizedForMusicKit = false
         }
     }
     
-    private func requestAppleMusicAccess(completion: @escaping (Bool) -> Void) {
-        SKCloudServiceController.requestAuthorization { status in
-            switch status {
-                case .authorized:
-                    print("authorized")
-                    self.appleMusicAccessGrantedByUser = true
-                    completion(true)
-                default:
-                    print("authorization denied or restricted")
-                    self.appleMusicAccessGrantedByUser = false
-                    completion(false)
+    //task which subscribes to the subscription capabilities since its first calles and stays active
+    private func getUserCapabilities() {
+        Task{
+            for await subscription in MusicSubscription.subscriptionUpdates {
+                self.musicSubscription = subscription
             }
-        }
-    }
-    
-    private func checkUserCapabilities(completion: @escaping (SKCloudServiceCapability,Error?) -> Void) {
-        SKCloudServiceController().requestCapabilities { (capability, error) in
-                if let error = error {
-                    print("An error occurred when requesting capabilities: \(error.localizedDescription)")
-                    return
-                }
-                
-                let defaults = UserDefaults.standard
-                
-                switch capability {
-                case .musicCatalogPlayback:
-                    defaults.set(true, forKey: "activeAppleMusicMembership")
-                    self.activeAppleMusicMembership = true
-                default:
-                    defaults.set(false, forKey: "activeAppleMusicMembership")
-                    self.activeAppleMusicMembership = false
-                }
-                
-                completion(capability, error)
         }
     }
 }
