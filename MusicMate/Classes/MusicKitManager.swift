@@ -56,4 +56,29 @@ class MusicKitManager: ObservableObject {
             }
         }
     }
+    
+    //get the users personal station so we can play recommended songs for the user
+    func getUsersPersonalStationId() async -> String{
+        do{
+            let countryCode = try await MusicDataRequest.currentCountryCode
+            
+            let url = URL(string: "https://api.music.apple.com/v1/catalog/\(countryCode)/stations?filter[identity]=personal")!
+
+            let dataRequest = MusicDataRequest(urlRequest: URLRequest(url: url))
+            let dataResponse = try await dataRequest.response()
+
+            let decoder = JSONDecoder()
+            let stationResponse = try decoder.decode(StationResponse.self, from: dataResponse.data)
+            
+            return stationResponse.data[0].id.rawValue
+        }
+        catch{
+            print("Error: \(error)")
+            return ""
+        }
+    }
+    
+    struct StationResponse: Decodable {
+        let data: [Station]
+    }
 }
