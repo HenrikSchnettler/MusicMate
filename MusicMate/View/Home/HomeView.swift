@@ -11,6 +11,8 @@ import AVFoundation
 import AVKit
 
 struct HomeView: View {
+    //describes the state the app is in
+    @Environment(\.scenePhase) var scenePhase
     //MusicKitManager object
     @EnvironmentObject var musicKitManager: MusicKitManager
     //the personal station of the user
@@ -45,6 +47,19 @@ struct HomeView: View {
             if audioPlayer.queueCount > 0
             {
                 audioPlayer.play()
+            }
+        }
+        .onChange(of: scenePhase) { newScenePhase in
+            switch newScenePhase {
+                case .active:
+                    print("App is active")
+                case .inactive:
+                    print("App is inactive")
+                case .background:
+                    //player should pause when the app goes into background so it doesnt go off directly if the user goes back again in the app
+                    audioPlayer.pause()
+                @unknown default:
+                    print("Unknown state")
             }
         }
     }
