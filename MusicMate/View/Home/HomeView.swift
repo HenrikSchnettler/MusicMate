@@ -37,6 +37,7 @@ struct HomeView: View {
                 LoadingView()
             }
         }
+        
         .onDisappear{
             if audioPlayer.queueCount > 0
             {

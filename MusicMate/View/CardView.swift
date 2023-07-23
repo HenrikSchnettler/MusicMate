@@ -25,6 +25,25 @@ struct CardView: View {
                 VStack{
                     Spacer()
                     //PlayerView(url: "https://mvod.itunes.apple.com/itunes-assets/HLSMusic125/v4/bc/1c/5f/bc1c5fac-0f38-375e-e221-057cd0f2665a/P359222039_default.m3u8")
+                    if(audioPlayer.isPlaying ?? false)
+                    {
+                        Button(action: {
+                            audioPlayer.player.pause()
+                        }) {
+                            Image(systemName: "pause.circle")
+                                .foregroundColor(.white)
+                        }
+                        .frame(minWidth: 50, maxWidth: 50, minHeight: 50, maxHeight: 50)
+                    }
+                    else{
+                        Button(action: {
+                            audioPlayer.player.play()
+                        }) {
+                            Image(systemName: "play.circle")
+                                .foregroundColor(.white)
+                        }
+                        .frame(minWidth: 50, maxWidth: 50, minHeight: 50, maxHeight: 50)
+                    }
                     Text(item.AppleMusicTrack?.title ?? "")
                     Text(item.AppleMusicTrack?.albumTitle ?? "")
                     Text(item.AppleMusicTrack?.artistName ?? "")

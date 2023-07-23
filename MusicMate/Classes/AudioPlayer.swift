@@ -11,7 +11,9 @@ import MusicKit
 
 class AudioPlayer: ObservableObject {
     @Published var player: AVQueuePlayer
+    @Published var isPlaying: Bool?
     private var endObserver: NSObjectProtocol?
+    private var isPlayingObserver: NSObjectProtocol?
     private var cancellable: AnyCancellable?
     
     @Published var queueCount: Int = 0 {
@@ -35,6 +37,7 @@ class AudioPlayer: ObservableObject {
         self.player = player
         self.queueCount = 0
         self.setupEndObserver()
+        self.setupIsPlayingObserver()
     }
     
     deinit {
@@ -97,6 +100,19 @@ class AudioPlayer: ObservableObject {
                 }
                 self?.updateQueueCount()
             }
+    }
+    
+    private func setupIsPlayingObserver() {
+        isPlayingObserver = player.observe(\.timeControlStatus, options: [.new]) { [weak self] (playerObject, change) in
+            if(playerObject.timeControlStatus == .playing)
+            {
+                self?.isPlaying = true
+            }
+            else if (playerObject.timeControlStatus == .paused)
+            {
+                self?.isPlaying = false
+            }
+        }
     }
     
     private func updateQueueCount() {
