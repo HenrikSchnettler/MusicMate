@@ -79,26 +79,54 @@ class MusicKitManager: ObservableObject {
     }
     
     //gets the next songs for a station because we dont want to play the station directly
-    func getStationsNextTracksIds(stationId: MusicItemID) async -> Void{
+    func getStationsNextTracks(stationId: MusicItemID) async -> Array<Track>{
         do{
             let countryCode = try await MusicDataRequest.currentCountryCode
             
-            let url = URL(string: "https://api.music.apple.com/v1/me/stations/next-tracks/\(stationId)")!
+            let url = URL(string: "https://api.music.apple.com/v1/me/stations/next-tracks/\(stationId)?limit=10&include=albums&extend=editorialVideo")!
             var urlRequest = URLRequest(url: url)
             //httpMethod must be POST as seen in the network request from the apple music web app
             urlRequest.httpMethod = "POST"
             
             let dataRequest = MusicDataRequest(urlRequest: urlRequest)
             
-            print("Test")
             let dataResponse = try await dataRequest.response()
 
             let decoder = JSONDecoder()
             let trackResponse = try decoder.decode(TrackResponse.self, from: dataResponse.data)
-            print("Test")
+            var results = Array<Track>()
+            for item in trackResponse.data {
+                if await !self.checkIfSongIsInUserLibrary(songId: item.id.rawValue)
+                {
+                    results.append(item)
+                }
+            }
+            return results
         }
         catch{
             print("Error: \(error)")
+            return Array<Track>()
+        }
+    }
+    
+    func checkIfSongIsInUserLibrary(songId: String) async -> Bool {
+        do {
+            let countryCode = try await MusicDataRequest.currentCountryCode
+
+            let libURL = URL(string: "https://api.music.apple.com/v1/catalog/\(countryCode)/songs/\(songId)/library?relate=library")!
+
+            let request = MusicDataRequest(urlRequest: URLRequest(url: libURL))
+
+            let dataResponse = try await request.response()
+            
+            let decoder = JSONDecoder()
+            print(dataResponse.debugDescription)
+            let trackResponse = try decoder.decode(SongResponse.self, from: dataResponse.data)
+            print("TEST")
+            return true
+        } catch {
+            print("Error: \(error)")
+            return false
         }
     }
     
@@ -108,6 +136,10 @@ class MusicKitManager: ObservableObject {
     
     struct TrackResponse: Decodable {
         let data: [Track]
+    }
+    
+    struct SongResponse: Decodable {
+        let data: [Song]
     }
     
     struct TrackIdResponse: Decodable {
