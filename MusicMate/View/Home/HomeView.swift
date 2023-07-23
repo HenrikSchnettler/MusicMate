@@ -35,8 +35,17 @@ struct HomeView: View {
                 LoadingView()
             }
         }
-        .task{
-            
+        .onDisappear{
+            if audioPlayer.queueCount > 0
+            {
+                audioPlayer.pause()
+            }
+        }
+        .onAppear{
+            if audioPlayer.queueCount > 0
+            {
+                audioPlayer.play()
+            }
         }
     }
 }
