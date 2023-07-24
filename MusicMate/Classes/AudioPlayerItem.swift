@@ -18,12 +18,14 @@ class AudioPlayerItem: ObservableObject, Identifiable {
     private var playerCurrentsongObserver: Any?
     private var progressObserver: Any?
     private var endObserver: NSObjectProtocol?
+    private var isPlayingObserver: NSObjectProtocol?
     private var cancellable: AnyCancellable?
     let id = UUID()
     let AppleMusicTrack: Track?
     
     @Published var progress: Double = 0
     @Published var duration: Double = 0
+    @Published var isPlaying: Bool?
 
     init(AudioPlayer: AudioPlayer, PlayerItem: AVPlayerItem, AppleMusicTrack: Track) {
         self.AudioPlayer = AudioPlayer
@@ -44,13 +46,21 @@ class AudioPlayerItem: ObservableObject, Identifiable {
             if(self?.AudioPlayer?.player.currentItem === self?.PlayerItem)
             {
                 self?.setupProgressObserver()
+                self?.setupIsPlayingObserver()
             }
         }
     }
     
-    private func setupDurationObserver() {
-        durationObserver = PlayerItem?.observe(\.duration, options: [.new]) { [weak self] (playerItem, change) in
-            self?.duration = CMTimeGetSeconds(playerItem.duration)
+    private func setupIsPlayingObserver() {
+        isPlayingObserver = AudioPlayer?.player.observe(\.timeControlStatus, options: [.new,.initial]) { [weak self] (playerObject, change) in
+            if(playerObject.timeControlStatus == .playing)
+            {
+                self?.isPlaying = true
+            }
+            else if (playerObject.timeControlStatus == .paused)
+            {
+                self?.isPlaying = false
+            }
         }
     }
     

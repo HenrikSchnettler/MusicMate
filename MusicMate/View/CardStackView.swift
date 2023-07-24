@@ -14,7 +14,7 @@ struct CardStackView: View {
         VStack {
             ZStack{
                 ForEach(audioPlayer.queue.reversed(), id: \.id) { item in
-                    CardView(item: item)
+                    CardView(item: item, isActive: item.id == audioPlayer.queue.first?.id)
                 }
             }
         }

@@ -14,6 +14,7 @@ struct CardView: View {
     @State private var color: Color = .black
     @EnvironmentObject var audioPlayer: AudioPlayer
     @ObservedObject var item: AudioPlayerItem
+    var isActive: Bool
 
     var body: some View {
         Rectangle()
@@ -25,7 +26,7 @@ struct CardView: View {
                 VStack{
                     Spacer()
                     //PlayerView(url: "https://mvod.itunes.apple.com/itunes-assets/HLSMusic125/v4/bc/1c/5f/bc1c5fac-0f38-375e-e221-057cd0f2665a/P359222039_default.m3u8")
-                    if(audioPlayer.isPlaying ?? false)
+                    if(item.isPlaying ?? false)
                     {
                         Button(action: {
                             audioPlayer.player.pause()
@@ -78,6 +79,8 @@ struct CardView: View {
                         }
                     }
             )
+            //view should only be interactable if it is marked active
+            .disabled(!isActive)
     }
     
     func swipeCard(width: CGFloat){
