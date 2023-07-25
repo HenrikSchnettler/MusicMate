@@ -89,7 +89,7 @@ class AudioPlayer: ObservableObject {
     private func setupEndObserver() {
             endObserver = NotificationCenter.default.addObserver(
                 forName: .AVPlayerItemDidPlayToEndTime,
-                object: nil,
+                object: self.player,
                 queue: .main
             ) { [weak self] _ in
                 DispatchQueue.main.async { // ensure this update is on the main thread
