@@ -11,7 +11,6 @@ import MusicKit
 
 class AudioPlayer: ObservableObject {
     @Published var player: AVQueuePlayer
-    private var endObserver: NSObjectProtocol?
     private var cancellable: AnyCancellable?
     
     @Published var queueCount: Int = 0 {
@@ -34,13 +33,10 @@ class AudioPlayer: ObservableObject {
         }
         self.player = player
         self.queueCount = 0
-        self.setupEndObserver()
     }
     
     deinit {
-        if let observer = endObserver {
-            NotificationCenter.default.removeObserver(observer)
-        }
+        
     }
 
     // This is the function to load more items
@@ -86,20 +82,7 @@ class AudioPlayer: ObservableObject {
         }
     }
     
-    private func setupEndObserver() {
-            endObserver = NotificationCenter.default.addObserver(
-                forName: .AVPlayerItemDidPlayToEndTime,
-                object: self.player.currentItem,
-                queue: .main
-            ) { [weak self] _ in
-                DispatchQueue.main.async { // ensure this update is on the main thread
-                    self?.queue.removeFirst()
-                }
-                self?.updateQueueCount()
-            }
-    }
-    
-    private func updateQueueCount() {
+    func updateQueueCount() {
         DispatchQueue.main.async { // ensure this update is on the main thread
             self.queueCount = self.queue.count
         }

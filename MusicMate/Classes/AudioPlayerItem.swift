@@ -36,7 +36,9 @@ class AudioPlayerItem: ObservableObject, Identifiable {
     }
     
     deinit {
-        
+        if let observer = endObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
     
     private func setupPlayerCurrentsongObserver() {
@@ -47,6 +49,7 @@ class AudioPlayerItem: ObservableObject, Identifiable {
             {
                 self?.setupProgressObserver()
                 self?.setupIsPlayingObserver()
+                self?.setupEndObserver()
             }
         }
     }
@@ -62,6 +65,19 @@ class AudioPlayerItem: ObservableObject, Identifiable {
                 self?.isPlaying = false
             }
         }
+    }
+    
+    private func setupEndObserver() {
+            endObserver = NotificationCenter.default.addObserver(
+                forName: .AVPlayerItemDidPlayToEndTime,
+                object: PlayerItem,
+                queue: .main
+            ) { [weak self] _ in
+                DispatchQueue.main.async { // ensure this update is on the main thread
+                    self?.AudioPlayer?.queue.removeFirst()
+                }
+                self?.AudioPlayer?.updateQueueCount()
+            }
     }
     
     private func setupProgressObserver() {
