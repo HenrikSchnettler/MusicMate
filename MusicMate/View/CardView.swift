@@ -19,64 +19,92 @@ struct CardView: View {
 
     var body: some View {
         VStack{
-            if viewShouldBeFinalized{
-                VideoPlayerView(url: URL(string: "https://mvod.itunes.apple.com/itunes-assets/HLSMusic125/v4/f1/06/a2/f106a238-e9e3-bac6-7328-f265e5693f00/P359221696_default.m3u8")!, isActive: isActive)
-                
-                //AsyncImage(url: URL(string: //"https://is1-ssl.mzstatic.com/image/thumb/Video124/v4/41/e7/2d/41e72d55-5731-7ddc-5374-6170ad574950/Jobe31b64ce-6872-45af-9229-5c75a976b116-108272180-PreviewImage_preview_image_nonvideo_sdr-Time1608169257715.png/3200x475bb.png")) { image in
-                            // This closure is called once the image is downloaded.
-                            //image
-                        //} placeholder: {
-                            // This view is shown until the image downloads.
-                            //ProgressView()
-                        //}
-                        //.frame(width: 320, height: 475)
+            VStack{
+                if viewShouldBeFinalized{
+                    VideoPlayerView(url: URL(string: "https://mvod.itunes.apple.com/itunes-assets/HLSMusic125/v4/f1/06/a2/f106a238-e9e3-bac6-7328-f265e5693f00/P359221696_default.m3u8")!, isActive: isActive)
+                    //AsyncImage(url: URL(string: //"https://is1-ssl.mzstatic.com/image/thumb/Video124/v4/41/e7/2d/41e72d55-5731-7ddc-5374-6170ad574950/Jobe31b64ce-6872-45af-9229-5c75a976b116-108272180-PreviewImage_preview_image_nonvideo_sdr-Time1608169257715.png/3200x475bb.png")) { image in
+                    // This closure is called once the image is downloaded.
+                    //image
+                    //} placeholder: {
+                    // This view is shown until the image downloads.
+                    //ProgressView()
+                    //}
+                    //.frame(width: 320, height: 475)
+                }
+                else{
+                }
             }
-            else{
-            }
+            .frame(width: 320, height: 475)
+            .overlay(
+                VStack {
+                    Spacer()
+                    if item.duration > 0 {
+                                        Slider(value: $item.progress, in: 0...item.duration, onEditingChanged: { editing in
+                                            if !editing {
+                                                item.seek(to: item.progress)
+                                            }
+                                        })
+                                        .padding(.horizontal)
+                                        .padding(.vertical, 10)
+                                    }
+                    VisualEffectView(effect: UIBlurEffect(style: .light))
+                        .frame(height: 100)
+                        .shadow(radius: 20)
+                        .overlay(
+                            VStack(alignment: .leading){
+                                HStack{
+                                    VStack(alignment: .leading){
+                                        if(item.isPlaying ?? false)
+                                        {
+                                            Button(action: {
+                                                audioPlayer.player.pause()
+                                            }) {
+                                                Image(systemName: "pause.circle.fill")
+                                                    .resizable()
+                                                    .foregroundColor(.white)
+                                                    .frame(minWidth: 50, maxWidth: 50, minHeight: 50, maxHeight: 50)
+                                                    .fixedSize(horizontal: true, vertical: true)
+                                                    .shadow(radius: 20)
+                                            }
+                                        }
+                                        else{
+                                            Button(action: {
+                                                audioPlayer.player.play()
+                                            }) {
+                                                Image(systemName: "play.circle.fill")
+                                                    .resizable()
+                                                    .foregroundColor(.white)
+                                                    .frame(minWidth: 50, maxWidth: 50, minHeight: 50, maxHeight: 50)
+                                                    .fixedSize(horizontal: true, vertical: true)
+                                                    .shadow(radius: 20)
+                                            }
+                                        }
+                                    }
+                                    .frame(width: 50)
+                                    .padding(.leading,20)
+                                    .padding(.trailing,10)
+                                    VStack(alignment: .leading){
+                                        Text(item.AppleMusicTrack?.title ?? "")
+                                            .font(.headline)
+                                        //Text(item.AppleMusicTrack?.albumTitle ?? "")
+                                        Text(item.AppleMusicTrack?.artistName ?? "")
+                                            .font(.subheadline)
+                                    }
+                                    .padding(.leading,10)
+                                    .padding(.trailing,20)
+                                    .foregroundColor(Color.white)
+                                    
+                                    Spacer()
+                                }
+                            }
+                        )
+                    }
+            )
         }
-        .frame(width: 320, height: 475)
         .background(Color(UIColor.systemBackground))
         .cornerRadius(16)
         //.shadow(radius: 1)
         .foregroundColor(color.opacity(1))
-        .overlay(
-            VStack(alignment: .center){
-                if isActive{
-                    //PlayerView(url: "https://mvod.itunes.apple.com/itunes-assets/HLSMusic125/v4/f1/06/a2/f106a238-e9e3-bac6-7328-f265e5693f00/P359221696_default.m3u8")
-                }
-                if(item.isPlaying ?? false)
-                {
-                    Button(action: {
-                        audioPlayer.player.pause()
-                    }) {
-                        Image(systemName: "pause.circle")
-                            .foregroundColor(.white)
-                    }
-                    .frame(minWidth: 50, maxWidth: 50, minHeight: 50, maxHeight: 50)
-                }
-                else{
-                    Button(action: {
-                        audioPlayer.player.play()
-                    }) {
-                        Image(systemName: "play.circle")
-                            .foregroundColor(.white)
-                    }
-                    .frame(minWidth: 50, maxWidth: 50, minHeight: 50, maxHeight: 50)
-                }
-                Text(item.AppleMusicTrack?.title ?? "")
-                Text(item.AppleMusicTrack?.albumTitle ?? "")
-                Text(item.AppleMusicTrack?.artistName ?? "")
-                //if personal station is fetched and avaible the CardView should be shown
-                if item.duration > 0 {
-                    Slider(value: $item.progress, in: 0...item.duration, onEditingChanged: { editing in
-                        if !editing {
-                            item.seek(to: item.progress)
-                        }
-                    })
-                    .padding()
-                }
-            }
-        )
         .padding()
         .offset(x: offset.width, y: offset.height * 0.4)
         .rotationEffect(.degrees(Double(offset.width / 40)))
@@ -156,6 +184,12 @@ struct CardView: View {
     func neutralSwipeEndAction(){
         
     }
+}
+
+struct VisualEffectView: UIViewRepresentable {
+    var effect: UIVisualEffect?
+    func makeUIView(context: UIViewRepresentableContext<Self>) -> UIVisualEffectView { UIVisualEffectView() }
+    func updateUIView(_ uiView: UIVisualEffectView, context: UIViewRepresentableContext<Self>) { uiView.effect = effect }
 }
 
 class PlayerUIView: UIView {

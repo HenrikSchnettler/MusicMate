@@ -21,6 +21,7 @@ struct CardStackView: View {
                     let index = audioPlayer.queue.firstIndex(where: { $0.id == item.id })
                     
                     CardView(item: item, isActive: item.id == audioPlayer.queue.first?.id,viewShouldBeFinalized: index.map { firstThreeIndices.contains($0) } ?? false)
+                        //.redacted(reason: .placeholder)
                 }
             }
         }
