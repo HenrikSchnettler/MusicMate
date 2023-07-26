@@ -15,72 +15,92 @@ struct CardView: View {
     @EnvironmentObject var audioPlayer: AudioPlayer
     @ObservedObject var item: AudioPlayerItem
     var isActive: Bool
+    var viewShouldBeFinalized: Bool
 
     var body: some View {
-        Rectangle()
-            .frame(width: 320, height: 475)
-            .border(.white, width: 6.0)
-            .cornerRadius(10)
-            .foregroundColor(color.opacity(1))
-            .overlay(
-                VStack{
-                    Spacer()
-                    //PlayerView(url: "https://mvod.itunes.apple.com/itunes-assets/HLSMusic125/v4/bc/1c/5f/bc1c5fac-0f38-375e-e221-057cd0f2665a/P359222039_default.m3u8")
-                    if(item.isPlaying ?? false)
-                    {
-                        Button(action: {
-                            audioPlayer.player.pause()
-                        }) {
-                            Image(systemName: "pause.circle")
-                                .foregroundColor(.white)
-                        }
-                        .frame(minWidth: 50, maxWidth: 50, minHeight: 50, maxHeight: 50)
+        VStack{
+            if viewShouldBeFinalized{
+                VideoPlayerView(url: URL(string: "https://mvod.itunes.apple.com/itunes-assets/HLSMusic125/v4/f1/06/a2/f106a238-e9e3-bac6-7328-f265e5693f00/P359221696_default.m3u8")!, isActive: isActive)
+                
+                //AsyncImage(url: URL(string: //"https://is1-ssl.mzstatic.com/image/thumb/Video124/v4/41/e7/2d/41e72d55-5731-7ddc-5374-6170ad574950/Jobe31b64ce-6872-45af-9229-5c75a976b116-108272180-PreviewImage_preview_image_nonvideo_sdr-Time1608169257715.png/3200x475bb.png")) { image in
+                            // This closure is called once the image is downloaded.
+                            //image
+                        //} placeholder: {
+                            // This view is shown until the image downloads.
+                            //ProgressView()
+                        //}
+                        //.frame(width: 320, height: 475)
+            }
+            else{
+            }
+        }
+        .frame(width: 320, height: 475)
+        .background(Color(UIColor.systemBackground))
+        .cornerRadius(16)
+        //.shadow(radius: 1)
+        .foregroundColor(color.opacity(1))
+        .overlay(
+            VStack(alignment: .center){
+                if isActive{
+                    //PlayerView(url: "https://mvod.itunes.apple.com/itunes-assets/HLSMusic125/v4/f1/06/a2/f106a238-e9e3-bac6-7328-f265e5693f00/P359221696_default.m3u8")
+                }
+                if(item.isPlaying ?? false)
+                {
+                    Button(action: {
+                        audioPlayer.player.pause()
+                    }) {
+                        Image(systemName: "pause.circle")
+                            .foregroundColor(.white)
                     }
-                    else{
-                        Button(action: {
-                            audioPlayer.player.play()
-                        }) {
-                            Image(systemName: "play.circle")
-                                .foregroundColor(.white)
-                        }
-                        .frame(minWidth: 50, maxWidth: 50, minHeight: 50, maxHeight: 50)
+                    .frame(minWidth: 50, maxWidth: 50, minHeight: 50, maxHeight: 50)
+                }
+                else{
+                    Button(action: {
+                        audioPlayer.player.play()
+                    }) {
+                        Image(systemName: "play.circle")
+                            .foregroundColor(.white)
                     }
-                    Text(item.AppleMusicTrack?.title ?? "")
-                    Text(item.AppleMusicTrack?.albumTitle ?? "")
-                    Text(item.AppleMusicTrack?.artistName ?? "")
-                    //if personal station is fetched and avaible the CardView should be shown
-                    if item.duration > 0 {
-                        Slider(value: $item.progress, in: 0...item.duration, onEditingChanged: { editing in
-                            if !editing {
-                                item.seek(to: item.progress)
-                            }
-                        })
-                        .padding()
+                    .frame(minWidth: 50, maxWidth: 50, minHeight: 50, maxHeight: 50)
+                }
+                Text(item.AppleMusicTrack?.title ?? "")
+                Text(item.AppleMusicTrack?.albumTitle ?? "")
+                Text(item.AppleMusicTrack?.artistName ?? "")
+                //if personal station is fetched and avaible the CardView should be shown
+                if item.duration > 0 {
+                    Slider(value: $item.progress, in: 0...item.duration, onEditingChanged: { editing in
+                        if !editing {
+                            item.seek(to: item.progress)
+                        }
+                    })
+                    .padding()
+                }
+            }
+        )
+        .padding()
+        .offset(x: offset.width, y: offset.height * 0.4)
+        .rotationEffect(.degrees(Double(offset.width / 40)))
+        .gesture(
+            DragGesture()
+                .onChanged{ gesture in
+                    offset = gesture.translation
+                    withAnimation{
+                        changeColor(width: offset.width)
+                    }
+                } .onEnded { _ in
+                    withAnimation(.easeOut(duration: 0.5)){
+                        swipeCard(width: offset.width)
+                        changeColor(width: offset.width)
+                    }
+                    let impactMedium = UIImpactFeedbackGenerator(style: .medium)
+                    impactMedium.impactOccurred()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        doSwipeAction(width: offset.width)
                     }
                 }
-            )
-            .padding()
-            .offset(x: offset.width, y: offset.height * 0.4)
-            .rotationEffect(.degrees(Double(offset.width / 40)))
-            .gesture(
-                DragGesture()
-                    .onChanged{ gesture in
-                        offset = gesture.translation
-                        withAnimation{
-                            changeColor(width: offset.width)
-                        }
-                    } .onEnded { _ in
-                        withAnimation(.easeOut(duration: 0.5)){
-                            swipeCard(width: offset.width)
-                            changeColor(width: offset.width)
-                        }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            doSwipeAction(width: offset.width)
-                        }
-                    }
-            )
-            //view should only be interactable if it is marked active
-            .disabled(!isActive)
+        )
+        //view should only be interactable if it is marked active
+        .disabled(!isActive)
     }
     
     func swipeCard(width: CGFloat){
@@ -138,20 +158,72 @@ struct CardView: View {
     }
 }
 
-struct PlayerView: UIViewRepresentable {
-    let url: String
+class PlayerUIView: UIView {
+    private var playerLayer = AVPlayerLayer()
+    private var looper: AVPlayerLooper?
     
-    func updateUIView(_ uiView: UIView, context: UIViewRepresentableContext<PlayerView>) {
+    var videoPlayer: AVQueuePlayer? {
+        get {
+            return playerLayer.player as? AVQueuePlayer
+        }
+        set {
+            playerLayer.player = newValue
+        }
     }
-
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
-        let player = AVPlayer(url: URL(string: url)!)
-        let playerLayer = AVPlayerLayer(player: player)
-        playerLayer.frame = view.bounds
-        view.layer.addSublayer(playerLayer)
-        player.play()
-        
-        return view
+    
+    var isActive: Bool = false {
+        didSet {
+            if isActive {
+                videoPlayer?.play()
+            } else {
+                videoPlayer?.pause()
+                videoPlayer?.seek(to: CMTime.zero)
+            }
+        }
+    }
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        playerLayer.videoGravity = .resizeAspectFill
+        layer.addSublayer(playerLayer)
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        playerLayer.frame = bounds
+    }
+    
+    func playInLoop(url: URL) {
+        let playerItem = AVPlayerItem(url: url)
+        videoPlayer = AVQueuePlayer(playerItem: playerItem)
+        looper = AVPlayerLooper(player: videoPlayer!, templateItem: playerItem)
+        if isActive {
+            videoPlayer?.play()
+        } else {
+            videoPlayer?.seek(to: CMTime.zero)
+        }
     }
 }
+
+struct VideoPlayerView: UIViewRepresentable {
+    var url: URL
+    var isActive: Bool
+    
+    func makeUIView(context: Context) -> UIView {
+        let view = PlayerUIView(frame: .zero)
+        view.isActive = isActive
+        view.playInLoop(url: url)
+        return view
+    }
+    
+    func updateUIView(_ uiView: UIView, context: UIViewRepresentableContext<VideoPlayerView>) {
+        if let view = uiView as? PlayerUIView {
+            view.isActive = isActive
+        }
+    }
+}
+

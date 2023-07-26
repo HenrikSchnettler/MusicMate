@@ -9,12 +9,18 @@ import SwiftUI
 
 struct CardStackView: View {
     @EnvironmentObject var audioPlayer: AudioPlayer
+    
+    var firstThreeIndices: Range<Array<Item>.Index> {
+        return audioPlayer.queue.startIndex..<(audioPlayer.queue.startIndex + min(3, audioPlayer.queue.count))
+    }
 
     var body: some View {
         VStack {
             ZStack{
                 ForEach(audioPlayer.queue.reversed(), id: \.id) { item in
-                    CardView(item: item, isActive: item.id == audioPlayer.queue.first?.id)
+                    let index = audioPlayer.queue.firstIndex(where: { $0.id == item.id })
+                    
+                    CardView(item: item, isActive: item.id == audioPlayer.queue.first?.id,viewShouldBeFinalized: index.map { firstThreeIndices.contains($0) } ?? false)
                 }
             }
         }
