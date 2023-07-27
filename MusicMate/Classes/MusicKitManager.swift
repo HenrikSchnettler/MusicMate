@@ -79,33 +79,28 @@ class MusicKitManager: ObservableObject {
     }
     
     //gets the next songs for a station because we dont want to play the station directly
-    func getStationsNextTracks(stationId: MusicItemID) async -> Array<Track>{
-        do{
+    func getStationsNextTracks(stationId: MusicItemID, trackFoundCallback: @escaping (Track) -> Void) async {
+        do {
             let countryCode = try await MusicDataRequest.currentCountryCode
-            
+
             let url = URL(string: "https://api.music.apple.com/v1/me/stations/next-tracks/\(stationId)?limit=10&include=albums&extend=editorialVideo")!
             var urlRequest = URLRequest(url: url)
-            //httpMethod must be POST as seen in the network request from the apple music web app
-            urlRequest.httpMethod = "POST"
-            
+            urlRequest.httpMethod = "POST" //httpMethod must be POST as seen in the network request from the apple music web app
+
             let dataRequest = MusicDataRequest(urlRequest: urlRequest)
-            
+
             let dataResponse = try await dataRequest.response()
 
             let decoder = JSONDecoder()
             let trackResponse = try decoder.decode(TrackResponse.self, from: dataResponse.data)
-            var results = Array<Track>()
             for item in trackResponse.data {
-                if await !self.checkIfSongIsInUserLibrary(songId: item.id.rawValue)
-                {
-                    results.append(item)
+                if await !self.checkIfSongIsInUserLibrary(songId: item.id.rawValue) {
+                    trackFoundCallback(item)
                 }
             }
-            return results
         }
-        catch{
+        catch {
             print("Error: \(error)")
-            return Array<Track>()
         }
     }
     

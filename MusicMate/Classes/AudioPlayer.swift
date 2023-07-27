@@ -43,11 +43,9 @@ class AudioPlayer: ObservableObject {
     private func loadMoreItems() {
         Task{
             let personalStationId = await MusicKitManager.shared.getUsersPersonalStationId()
-            // Replace the logic here with your own for loading more items
-            let additionalItems = await MusicKitManager.shared.getStationsNextTracks(stationId: personalStationId)
-            for item in additionalItems {
-                if let previewUrl = item.previewAssets?.first?.url {
-                    self.appendSong(url: previewUrl, track: item)
+            let additionalItems = await MusicKitManager.shared.getStationsNextTracks(stationId: personalStationId){ track in
+                if let previewUrl = track.previewAssets?.first?.url {
+                    self.appendSong(url: previewUrl, track: track)
                 }
             }
         }
