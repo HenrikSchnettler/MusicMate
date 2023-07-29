@@ -13,6 +13,7 @@ struct CardView: View {
     @State private var offset = CGSize.zero
     @State private var color: Color = .black
     @EnvironmentObject var audioPlayer: AudioPlayer
+    @Environment(\.colorScheme) var colorScheme
     @ObservedObject var item: AudioPlayerItem
     var isActive: Bool
     var viewShouldBeFinalized: Bool
@@ -35,6 +36,10 @@ struct CardView: View {
                 }
             }
             .frame(width: 320, height: 475)
+            //.overlay(
+                //VisualEffectView(effect: UIBlurEffect(style: .dark))
+                                //.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            //)
             .overlay(
                 VStack {
                     Spacer()
@@ -100,10 +105,19 @@ struct CardView: View {
                         )
                     }
             )
+            .overlay(
+                Group{
+                    if colorScheme == .dark
+                    {
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.white.opacity(0.3), lineWidth: 4)
+                    }
+                }
+            )
         }
         .background(Color(UIColor.systemBackground))
         .cornerRadius(16)
-        //.shadow(radius: 1)
+        .shadow(radius: viewShouldBeFinalized ? 4 : 0)
         .foregroundColor(color.opacity(1))
         .padding()
         .offset(x: offset.width, y: offset.height * 0.4)
