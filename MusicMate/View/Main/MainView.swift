@@ -41,28 +41,28 @@ struct MainView: View {
         NavigationView{
             TabView(selection: $selection){
                     //Overview Tab
-                    HomeView()
+                    ExploreNowView()
                     .tag(Tabs.home)
                     .onAppear(){
                         
                     }
                 
                     .tabItem {
-                        Text("overview")
-                        Image(systemName: "house")
+                        Text("Explore Now")
+                        Image(systemName: "play.square.stack")
                         Color.themeAccent
                     }
                 
                     //Tab for the explore Playlist
-                    ExploreView()
+                    ExploreLaterView()
                     .tag(Tabs.explore)
                     .onAppear(){
                     
                     }
             
                     .tabItem {
-                        Text("Explore")
-                        Image(systemName: "play.square.stack")
+                        Text("Explore Later")
+                        Image(systemName: "list.bullet.rectangle.fill")
                         Color.themeAccent
                     }
             }

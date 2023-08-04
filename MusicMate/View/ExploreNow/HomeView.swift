@@ -10,7 +10,7 @@ import MusicKit
 import AVFoundation
 import AVKit
 
-struct HomeView: View {
+struct ExploreNowView: View {
     //describes the state the app is in
     @Environment(\.scenePhase) var scenePhase
     //MusicKitManager object
@@ -69,6 +69,6 @@ struct HomeView: View {
 
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
-        HomeView()
+        ExploreNowView()
     }
 }
