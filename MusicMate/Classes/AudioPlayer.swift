@@ -45,18 +45,27 @@ class AudioPlayer: ObservableObject {
             let personalStationId = await MusicKitManager.shared.getUsersPersonalStationId()
             let additionalItems = await MusicKitManager.shared.getStationsNextTracks(stationId: personalStationId){ track in
                 if let previewUrl = track.previewAssets?.first?.url {
-                    self.appendSong(url: previewUrl, track: track)
+                    Task{
+                        await MusicKitManager.shared.getAlbumByID(songId: track.id){ result in
+                            switch result {
+                            case .success(let album):
+                                self.appendSong(url: previewUrl, track: track, album: album)
+                            case .failure(let error):
+                                print("Error: \(error.localizedDescription)")
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 
-    func appendSong(url: URL, track: Track) {
+    func appendSong(url: URL, track: Track, album: ExtendedAlbum) {
         let item = AVPlayerItem(url: url)
         
         player.insert(item, after: player.items().last)
         DispatchQueue.main.async { // ensure this update is on the main thread
-            self.queue.append(AudioPlayerItem(AudioPlayer: self, PlayerItem: item, AppleMusicTrack: track))
+            self.queue.append(AudioPlayerItem(AudioPlayer: self, PlayerItem: item, AppleMusicTrack: track, AppleMusicExtendedAlbum: album))
         }
         self.updateQueueCount()
     }

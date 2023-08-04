@@ -104,6 +104,49 @@ class MusicKitManager: ObservableObject {
         }
     }
     
+    func getAlbumByID(songId: MusicItemID, completion: @escaping (Result<ExtendedAlbum, Error>) -> Void) async {
+        do{
+            let countryCode = try await MusicDataRequest.currentCountryCode
+            
+            let url = URL(string: "https://amp-api.music.apple.com/v1/catalog/\(countryCode)/songs/\(songId)/albums?extend=editorialArtwork,editorialVideo,extendedAssetUrls,offers")!
+            var urlRequest = URLRequest(url: url)
+            
+            urlRequest.httpMethod = "GET"
+            
+            
+            urlRequest.setValue("Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldlYlBsYXlLaWQifQ.eyJpc3MiOiJBTVBXZWJQbGF5IiwiaWF0IjoxNjkwNDA2ODM1LCJleHAiOjE2OTc2NjQ0MzUsInJvb3RfaHR0cHNfb3JpZ2luIjpbImFwcGxlLmNvbSJdfQ.seFShNhCiGuoj5qBOqECAoKBtKJF0wN-KaEj4HICJnExwXtnYabeb0jTSSrK1uez5b6XvYUOsx0pgARKm1AJQg", forHTTPHeaderField: "Authorization")
+            
+            urlRequest.setValue("https://music.apple.com", forHTTPHeaderField: "Origin")
+            
+            let task = URLSession.shared.dataTask(with: urlRequest) { (data, response, error) in
+                // Error Handling
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                
+                // Ensure we have data
+                guard let data = data else {
+                    completion(.failure(NSError(domain: "dataNilError", code: -10001, userInfo: nil)))
+                    return
+                }
+                
+                // Decode JSON
+                do {
+                    let decoder = JSONDecoder()
+                    let albumResponse = try decoder.decode(ExtendedAlbumResponse.self, from: data)
+                    completion(.success(albumResponse.data.first!))
+                } catch {
+                    completion(.failure(error))
+                }
+            }
+            task.resume()
+        }
+        catch{
+            print("Error: \(error)")
+        }
+    }
+    
     func checkIfSongIsInUserLibrary(songId: String) async -> Bool {
         do {
             let countryCode = try await MusicDataRequest.currentCountryCode
@@ -115,9 +158,9 @@ class MusicKitManager: ObservableObject {
             let dataResponse = try await request.response()
             
             let decoder = JSONDecoder()
-            print(dataResponse.debugDescription)
+            
             let trackResponse = try decoder.decode(SongResponse.self, from: dataResponse.data)
-            print("TEST")
+            
             return true
         } catch {
             print("Error: \(error)")
@@ -135,6 +178,10 @@ class MusicKitManager: ObservableObject {
     
     struct SongResponse: Decodable {
         let data: [Song]
+    }
+    
+    struct AlbumResponse: Decodable {
+        let data: [Album]
     }
     
     struct TrackIdResponse: Decodable {

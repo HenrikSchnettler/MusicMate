@@ -22,15 +22,17 @@ class AudioPlayerItem: ObservableObject, Identifiable {
     private var cancellable: AnyCancellable?
     let id = UUID()
     let AppleMusicTrack: Track?
+    let AppleMusicExtendedAlbum: ExtendedAlbum?
     
     @Published var progress: Double = 0
     @Published var duration: Double = 0
     @Published var isPlaying: Bool?
 
-    init(AudioPlayer: AudioPlayer, PlayerItem: AVPlayerItem, AppleMusicTrack: Track) {
+    init(AudioPlayer: AudioPlayer, PlayerItem: AVPlayerItem, AppleMusicTrack: Track, AppleMusicExtendedAlbum: ExtendedAlbum) {
         self.AudioPlayer = AudioPlayer
         self.PlayerItem = PlayerItem
         self.AppleMusicTrack = AppleMusicTrack
+        self.AppleMusicExtendedAlbum = AppleMusicExtendedAlbum
         
         self.setupPlayerCurrentsongObserver()
     }
