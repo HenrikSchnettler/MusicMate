@@ -38,8 +38,28 @@ class AudioPlayerItem: ObservableObject, Identifiable {
     }
     
     deinit {
-        if let observer = endObserver {
-            NotificationCenter.default.removeObserver(observer)
+        if let observer1 = statusObserver {
+            NotificationCenter.default.removeObserver(observer1)
+        }
+        
+        if let observer2 = durationObserver {
+            NotificationCenter.default.removeObserver(observer2)
+        }
+        
+        if let observer3 = playerCurrentsongObserver {
+            NotificationCenter.default.removeObserver(observer3)
+        }
+        
+        if let observer4 = progressObserver {
+            NotificationCenter.default.removeObserver(observer4)
+        }
+        
+        if let observer5 = endObserver {
+            NotificationCenter.default.removeObserver(observer5)
+        }
+        
+        if let observer6 = isPlayingObserver {
+            NotificationCenter.default.removeObserver(observer6)
         }
     }
     
