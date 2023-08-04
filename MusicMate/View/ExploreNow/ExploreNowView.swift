@@ -52,9 +52,7 @@ struct ExploreNowView: View {
                         CardStackView()
                             .environmentObject(audioPlayer)
                             .onAppear {
-                                if audioPlayer.queueCount > 0 {
-                                    audioPlayer.play()
-                                }
+                                
                             }
                     }
                     else{
