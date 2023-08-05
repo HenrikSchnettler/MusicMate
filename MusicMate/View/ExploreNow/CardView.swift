@@ -18,6 +18,7 @@ struct CardView: View {
     var isActive: Bool
     var viewShouldBeFinalized: Bool
     @State private var sliderValuePlaceholder: Double = 0
+    @Binding var destinationSelection: String
 
     var body: some View {
         VStack{
@@ -240,7 +241,9 @@ struct CardView: View {
         //song should be added to the users library and then the player shoul skip to the next song (for now)
         Task{
             if let insertTrack = item.AppleMusicTrack {
-                try await MusicLibrary.shared.add(item.AppleMusicTrack!)
+                if destinationSelection == "Library"{
+                    try await MusicLibrary.shared.add(item.AppleMusicTrack!)
+                }
             }
         }
         audioPlayer.skip()

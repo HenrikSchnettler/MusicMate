@@ -25,7 +25,7 @@ struct ExploreNowView: View {
     @State private var showSheet = false
     
     let confirmDestinations = ["Library"]
-    @State private var selection = "Library"
+    @State var destinationSelection = "Library"
     
     @ViewBuilder
     private var backgroundView: some View {
@@ -49,7 +49,7 @@ struct ExploreNowView: View {
                 Group{
                     if audioPlayer.queueCount > 0
                     {
-                        CardStackView()
+                        CardStackView(destinationSelection: $destinationSelection)
                             .environmentObject(audioPlayer)
                             .onAppear {
                                 
@@ -89,7 +89,7 @@ struct ExploreNowView: View {
                  .padding(.bottom)
                  */
                 
-                Picker(selection: $selection, label: Text("Target:")) {
+                Picker(selection: $destinationSelection, label: Text("Target:")) {
                     ForEach(confirmDestinations, id: \.self) {
                         Text($0)
                     }

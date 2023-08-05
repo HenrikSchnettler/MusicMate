@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CardStackView: View {
     @EnvironmentObject var audioPlayer: AudioPlayer
+    @Binding var destinationSelection: String
     
     var firstThreeIndices: Range<Array<Item>.Index> {
         return audioPlayer.queue.startIndex..<(audioPlayer.queue.startIndex + min(2, audioPlayer.queue.count))
@@ -20,7 +21,7 @@ struct CardStackView: View {
                 ForEach(audioPlayer.queue.reversed().suffix(3), id: \.id) { item in
                     let index = audioPlayer.queue.firstIndex(where: { $0.id == item.id })
                     
-                        CardView(item: item, isActive: item.id == audioPlayer.queue.first?.id,viewShouldBeFinalized: index.map { firstThreeIndices.contains($0) } ?? false)
+                    CardView(item: item, isActive: item.id == audioPlayer.queue.first?.id,viewShouldBeFinalized: index.map { firstThreeIndices.contains($0) } ?? false, destinationSelection: $destinationSelection)
                         //.redacted(reason: .placeholder)
                 }
             }
@@ -30,6 +31,6 @@ struct CardStackView: View {
 
 struct CardStackView_Previews: PreviewProvider {
     static var previews: some View {
-        CardStackView()
+        CardStackView(destinationSelection: .constant("Library"))
     }
 }
