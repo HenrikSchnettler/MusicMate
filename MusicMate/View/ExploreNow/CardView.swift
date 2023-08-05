@@ -251,78 +251,10 @@ struct CardView: View {
     }
 }
 
+
 struct VisualEffectView: UIViewRepresentable {
     var effect: UIVisualEffect?
     func makeUIView(context: UIViewRepresentableContext<Self>) -> UIVisualEffectView { UIVisualEffectView() }
     func updateUIView(_ uiView: UIVisualEffectView, context: UIViewRepresentableContext<Self>) { uiView.effect = effect }
-}
-
-class PlayerUIView: UIView {
-    private var playerLayer = AVPlayerLayer()
-    private var looper: AVPlayerLooper?
-    
-    var videoPlayer: AVQueuePlayer? {
-        get {
-            return playerLayer.player as? AVQueuePlayer
-        }
-        set {
-            playerLayer.player = newValue
-        }
-    }
-    
-    var isActive: Bool = false {
-        didSet {
-            if isActive {
-                videoPlayer?.play()
-            } else {
-                videoPlayer?.pause()
-                videoPlayer?.seek(to: CMTime.zero)
-            }
-        }
-    }
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        playerLayer.videoGravity = .resizeAspectFill
-        layer.addSublayer(playerLayer)
-    }
-    
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-    }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        playerLayer.frame = bounds
-    }
-    
-    func playInLoop(url: URL) {
-        let playerItem = AVPlayerItem(url: url)
-        videoPlayer = AVQueuePlayer(playerItem: playerItem)
-        looper = AVPlayerLooper(player: videoPlayer!, templateItem: playerItem)
-        if isActive {
-            videoPlayer?.play()
-        } else {
-            videoPlayer?.seek(to: CMTime.zero)
-        }
-    }
-}
-
-struct VideoPlayerView: UIViewRepresentable {
-    var url: URL
-    var isActive: Bool
-    
-    func makeUIView(context: Context) -> UIView {
-        let view = PlayerUIView(frame: .zero)
-        view.isActive = isActive
-        view.playInLoop(url: url)
-        return view
-    }
-    
-    func updateUIView(_ uiView: UIView, context: UIViewRepresentableContext<VideoPlayerView>) {
-        if let view = uiView as? PlayerUIView {
-            view.isActive = isActive
-        }
-    }
 }
 
