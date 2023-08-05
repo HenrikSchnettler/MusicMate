@@ -11,14 +11,14 @@ import CoreData
 //Returns the localized value for Tabname
 enum Tabs: String{
     case home = "appname"
-    case explore = "explore"
+    case explorelater = "Explore Later"
     
     var localizedString: String {
         switch self {
             case .home:
                 return NSLocalizedString("appname", comment: "")
-        case .explore:
-            return NSLocalizedString("Explore", comment: "")
+        case .explorelater:
+            return NSLocalizedString("Explore Later", comment: "")
         }
     }
 }
@@ -55,7 +55,7 @@ struct MainView: View {
                 
                     //Tab for the explore Playlist
                     ExploreLaterView()
-                    .tag(Tabs.explore)
+                    .tag(Tabs.explorelater)
                     .onAppear(){
                     
                     }

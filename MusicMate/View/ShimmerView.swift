@@ -71,9 +71,3 @@ public extension View {
     modifier(ShimmerModifier(configuration: configuration))
   }
 }
-
-struct ShimmerView_Previews: PreviewProvider {
-    static var previews: some View {
-        ShimmerView()
-    }
-}
