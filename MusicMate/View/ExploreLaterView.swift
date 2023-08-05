@@ -8,7 +8,7 @@
 import SwiftUI
 import AVKit
 
-struct ExploreView: View {
+struct ExploreLaterView: View {
     var body: some View {
         VStack {
             ShimmerView()
@@ -34,7 +34,7 @@ struct ShimmerView: View {
                 .padding()
             )
             .onAppear {
-                withAnimation(Animation.linear(duration: 1).repeatForever(autoreverses: false)) {
+                withAnimation(Animation.linear(duration: 1).repeatForever(autoreverses: true)) {
                     gradientStart = .leading
                     gradientEnd = .trailing
                 }
@@ -44,6 +44,6 @@ struct ShimmerView: View {
 
 struct ExploreView_Previews: PreviewProvider {
     static var previews: some View {
-        ExploreView()
+        ExploreLaterView()
     }
 }
