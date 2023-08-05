@@ -41,14 +41,17 @@ class AudioPlayer: ObservableObject {
 
     // This is the function to load more items
     private func loadMoreItems() {
-        Task{
-            let personalStationId = await MusicKitManager.shared.getUsersPersonalStationId()
-            let additionalItems = await MusicKitManager.shared.getStationsNextTracks(stationId: personalStationId){ track in
+        Task {
+            weak var musicManager = MusicKitManager.shared
+            let personalStationId = await musicManager?.getUsersPersonalStationId()
+            let additionalItems = await musicManager?.getStationsNextTracks(stationId: personalStationId ?? "") { track in
                 if let previewUrl = track.previewAssets?.first?.url {
-                    Task{
-                        await MusicKitManager.shared.getAlbumByID(songId: track.id){ result in
+                    Task {
+                        weak var musicManager = MusicKitManager.shared
+                        await musicManager?.getAlbumByID(songId: track.id) { result in
                             switch result {
                             case .success(let album):
+                                print("Test")
                                 self.appendSong(url: previewUrl, track: track, album: album)
                             case .failure(let error):
                                 print("Error: \(error.localizedDescription)")

@@ -17,13 +17,11 @@ struct CardStackView: View {
     var body: some View {
         VStack {
             ZStack{
-                ForEach(audioPlayer.queue.reversed(), id: \.id) { item in
+                ForEach(audioPlayer.queue.reversed().suffix(3), id: \.id) { item in
                     let index = audioPlayer.queue.firstIndex(where: { $0.id == item.id })
                     
-                    if (index.map { firstThreeIndices.contains($0) } != nil){
                         CardView(item: item, isActive: item.id == audioPlayer.queue.first?.id,viewShouldBeFinalized: index.map { firstThreeIndices.contains($0) } ?? false)
                         //.redacted(reason: .placeholder)
-                    }
                 }
             }
         }
