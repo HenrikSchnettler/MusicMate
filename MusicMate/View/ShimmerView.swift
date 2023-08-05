@@ -16,8 +16,8 @@ public struct ShimmerConfiguration {
     public static let `default` = ShimmerConfiguration(
         gradient: Gradient(stops: [
             .init(color: Color(UIColor.systemGray6), location: 0),
-            .init(color: .white, location: 0.3),
-            .init(color: .white, location: 0.7),
+            .init(color: Color.gray, location: 0.3),
+            .init(color: Color.gray, location: 0.7),
             .init(color: Color(UIColor.systemGray6), location: 1),
         ]),
         initialLocation: (start: UnitPoint(x: -1, y: 0.5), end: .leading),
