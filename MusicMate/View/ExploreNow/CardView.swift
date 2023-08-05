@@ -11,7 +11,7 @@ import MusicKit
 
 struct CardView: View {
     @State private var offset = CGSize.zero
-    @State private var color: Color = .black
+    @State private var color: Color = .white.opacity(0)
     @EnvironmentObject var audioPlayer: AudioPlayer
     @Environment(\.colorScheme) var colorScheme
     @ObservedObject var item: AudioPlayerItem
@@ -164,6 +164,13 @@ struct CardView: View {
             )
             .overlay(
                 GeometryReader { cardOverlayGeometry in
+                    Rectangle()
+                        .fill(color)
+                        .frame(width: cardOverlayGeometry.size.width, height: cardOverlayGeometry.size.height)
+                }
+            )
+            .overlay(
+                GeometryReader { cardOverlayGeometry in
                     Group{
                         if colorScheme == .dark
                         {
@@ -178,7 +185,6 @@ struct CardView: View {
         .background(Color(UIColor.systemBackground))
         .cornerRadius(16)
         .shadow(radius: viewShouldBeFinalized ? 4 : 0)
-        .foregroundColor(color.opacity(1))
         .padding()
         .offset(x: offset.width, y: offset.height * 0.4)
         .rotationEffect(.degrees(Double(offset.width / 40)))
@@ -232,11 +238,11 @@ struct CardView: View {
     func changeColor(width: CGFloat){
         switch width {
         case -500...(-130):
-            color = .red
+            color = .red.opacity(0.4)
         case 150...500:
-            color = .green
+            color = .green.opacity(0.4)
         default:
-            color = .black
+            color = .white.opacity(0)
         }
     }
     
