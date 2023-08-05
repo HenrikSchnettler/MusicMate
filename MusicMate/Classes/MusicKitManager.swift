@@ -78,6 +78,23 @@ class MusicKitManager: ObservableObject {
         }
     }
     
+    //get the users profile information
+    func getUsersSocialProfile() async -> Void{
+        do{
+            let url = URL(string: "https://api.music.apple.com/v1/me/account")!
+
+            let dataRequest = MusicDataRequest(urlRequest: URLRequest(url: url))
+            let dataResponse = try await dataRequest.response()
+
+            let decoder = JSONDecoder()
+            let stationResponse = try decoder.decode(SocialProfileResponse.self, from: dataResponse.data)
+            print("TEST")
+        }
+        catch{
+            print("Error: \(error)")
+        }
+    }
+    
     //gets the next songs for a station because we dont want to play the station directly
     func getStationsNextTracks(stationId: MusicItemID, trackFoundCallback: @escaping (Track) -> Void) async {
         do {

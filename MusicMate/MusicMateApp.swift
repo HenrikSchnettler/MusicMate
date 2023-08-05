@@ -13,6 +13,8 @@ struct MusicMateApp: App {
     let persistenceController = PersistenceController.shared
     //reference to the singleton instance of MusicKitManager class
     @StateObject private var musicKitManager = MusicKitManager.shared
+    //reference to the singleton instance of networkMonitor class
+    @StateObject private var networkMonitor = NetworkMonitor.shared
 
     var body: some Scene {
         WindowGroup {
@@ -24,6 +26,7 @@ struct MusicMateApp: App {
                         //user gave permission to access apple music so MainView can be shown
                         MainView()
                             .environmentObject(musicKitManager)
+                            .environmentObject(networkMonitor)
                             .environment(\.managedObjectContext, persistenceController.container.viewContext)
                             .onAppear(){
                             }

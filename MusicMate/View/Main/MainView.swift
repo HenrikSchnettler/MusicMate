@@ -29,6 +29,8 @@ struct MainView: View {
     @Environment(\.managedObjectContext) private var viewContext
     //Holds the current tab selection (Home by default)
     @State var selection: Tabs = .home
+    //NetworkMonitor object
+    @EnvironmentObject var networkMonitor: NetworkMonitor
     
     //Holds the current state if the UserInfoSheet is shown (false by default)
     @State var showUserInfoSheet: Bool = false
@@ -40,21 +42,35 @@ struct MainView: View {
     var body : some View{
         NavigationView{
             TabView(selection: $selection){
-                    //Overview Tab
+                //Overview Tab
+                if networkMonitor.networkStatus == .disconnected
+                {
+                    OfflineView()
+                        .tag(Tabs.home)
+                        .onAppear(){
+                            
+                        }
+                        .tabItem {
+                            Text("Explore Now")
+                            Image(systemName: "play.square.stack")
+                            Color.themeAccent
+                        }
+                }
+                else{
                     ExploreNowView()
-                    .tag(Tabs.home)
-                    .onAppear(){
-                        
-                    }
+                        .tag(Tabs.home)
+                        .onAppear(){
+                            
+                        }
+                        .tabItem {
+                            Text("Explore Now")
+                            Image(systemName: "play.square.stack")
+                            Color.themeAccent
+                        }
+                }
                 
-                    .tabItem {
-                        Text("Explore Now")
-                        Image(systemName: "play.square.stack")
-                        Color.themeAccent
-                    }
-                
-                    //Tab for the explore Playlist
-                    ExploreLaterView()
+                //Tab for the explore Playlist
+                ExploreLaterView()
                     .tag(Tabs.explorelater)
                     .onAppear(){
                     

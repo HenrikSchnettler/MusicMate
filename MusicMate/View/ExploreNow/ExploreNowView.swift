@@ -129,12 +129,6 @@ struct ExploreNowView: View {
                     audioPlayer.pause()
                 }
             }
-            .onAppear{
-                if audioPlayer.queueCount > 0
-                {
-                    audioPlayer.play()
-                }
-            }
             .onChange(of: scenePhase) { newScenePhase in
                 switch newScenePhase {
                 case .active:

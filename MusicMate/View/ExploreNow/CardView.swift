@@ -19,6 +19,8 @@ struct CardView: View {
     var viewShouldBeFinalized: Bool
     @State private var sliderValuePlaceholder: Double = 0
     @Binding var destinationSelection: String
+    //describes the state the app is in
+    @Environment(\.scenePhase) var scenePhase
 
     var body: some View {
         VStack{
