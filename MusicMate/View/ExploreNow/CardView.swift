@@ -17,6 +17,7 @@ struct CardView: View {
     @ObservedObject var item: AudioPlayerItem
     var isActive: Bool
     var viewShouldBeFinalized: Bool
+    @State private var sliderValuePlaceholder: Double = 0
 
     var body: some View {
         VStack{
@@ -36,8 +37,7 @@ struct CardView: View {
                                         VisualEffectView(effect: UIBlurEffect(style: .light))
                                     )
                             } placeholder: {
-                                // This view is shown until the image downloads.
-                                ProgressView()
+                                
                             }
                             .frame(width: cardGeometry.size.width, height: cardGeometry.size.height) // Set the width to the parent's width
                         }
@@ -54,21 +54,25 @@ struct CardView: View {
                     VStack {
                         HStack(alignment: .center){
                             GeometryReader { artWorkOverlayGeometry in
-                                if let liveArtwork = item.AppleMusicExtendedAlbum?.attributes.editorialVideo?.motionDetailTall?.video{
-                                    
-                                }
-                                else if let staticArtwork = item.AppleMusicExtendedAlbum?.attributes.artwork.url{
-                                    AsyncImage(url: URL(string: String(staticArtwork).replacingOccurrences(of: "{w}", with: "1920").replacingOccurrences(of: "{h}", with: "1920").replacingOccurrences(of: "{f}", with: "png"))) { image in
-                                        // This closure is called once the image is downloaded.
-                                        image
-                                            .resizable()
-                                            .shadow(radius: 20)
-                                            .cornerRadius(16)
-                                    } placeholder: {
-                                        // This view is shown until the image downloads.
-                                        ProgressView()
+                                if viewShouldBeFinalized {
+                                    if let liveArtwork = item.AppleMusicExtendedAlbum?.attributes.editorialVideo?.motionDetailTall?.video{
+                                        
                                     }
-                                    .frame(width: artWorkOverlayGeometry.size.width, height: artWorkOverlayGeometry.size.width)
+                                    else if let staticArtwork = item.AppleMusicExtendedAlbum?.attributes.artwork.url{
+                                        AsyncImage(url: URL(string: String(staticArtwork).replacingOccurrences(of: "{w}", with: "1920").replacingOccurrences(of: "{h}", with: "1920").replacingOccurrences(of: "{f}", with: "png"))) { image in
+                                            // This closure is called once the image is downloaded.
+                                            image
+                                                .resizable()
+                                                .shadow(radius: 20)
+                                                .cornerRadius(16)
+                                        } placeholder: {
+                                            VisualEffectView(effect: UIBlurEffect(style: .light))
+                                                .redacted(reason: .placeholder)
+                                                .shimmer()
+                                                .cornerRadius(16)
+                                        }
+                                        .frame(width: artWorkOverlayGeometry.size.width, height: artWorkOverlayGeometry.size.width)
+                                    }
                                 }
                             }
                         }
@@ -81,6 +85,11 @@ struct CardView: View {
                                         item.seek(to: item.progress)
                                     }
                                 })
+                                .padding(.horizontal)
+                                //.padding(.bottom, 10)
+                            }
+                            else{
+                                Slider(value: $sliderValuePlaceholder, in: 0...100)
                                 .padding(.horizontal)
                                 //.padding(.bottom, 10)
                             }
@@ -156,6 +165,7 @@ struct CardView: View {
                 }
             )
         }
+        //.background(Color(UIColor.systemBackground))
         .background(Color(UIColor.systemBackground))
         .cornerRadius(16)
         .shadow(radius: viewShouldBeFinalized ? 4 : 0)

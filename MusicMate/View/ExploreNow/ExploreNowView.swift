@@ -35,7 +35,7 @@ struct ExploreNowView: View {
             AsyncImage(url: URL(string: String(staticArtwork).replacingOccurrences(of: "{w}", with: "150").replacingOccurrences(of: "{h}", with: "40").replacingOccurrences(of: "{f}", with: "png"))) { image in
                 // This closure is called once the image is downloaded.
                 image
-                    .shadow(radius: 20)
+                    .shadow(radius: 8)
             } placeholder: {
                 
             }
@@ -57,7 +57,7 @@ struct ExploreNowView: View {
                     }
                     else{
                         //if personal station isnt loaded yet there should be a loading animation
-                        LoadingView()
+                        SkeletonCardView()
                     }
                 }
                 //Spacer()
