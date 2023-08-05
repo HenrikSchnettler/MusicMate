@@ -96,6 +96,14 @@ struct CardView: View {
                             }
                         }
                         .frame(width: cardOverlayGeometry.size.width, height: cardOverlayGeometry.size.height * 0.080)
+                        .gesture(
+                            DragGesture()
+                                .onChanged{ gesture in
+                                    
+                                } .onEnded { _ in
+                                    
+                                }
+                        )
                         VisualEffectView(effect: UIBlurEffect(style: .light))
                             .frame(width: cardOverlayGeometry.size.width, height: cardOverlayGeometry.size.height * 0.23)
                             .shadow(radius: 20)
