@@ -88,17 +88,7 @@ struct MainView: View {
             .navigationBarTitle(selection.localizedString.capitalized, displayMode: .automatic)
             .navigationBarItems(trailing:
                                     ZStack{
-                                        Button(action: {
-                                            showUserInfoSheet.toggle()
-                                        }, label: {
-                                            ZStack{
-                                                Circle()
-                                                    .foregroundColor(Color.themeForeground )
-                                                    .frame(width: 42, height: 42, alignment: .center)
-                                                Text("HS")
-                                                    .foregroundColor(Color.themeBackground)
-                                            }
-                                        })
+                                        
                                         
                                     }
             )
