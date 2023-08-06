@@ -15,6 +15,7 @@ struct OfflineView: View {
                 .bold()
                 .padding(.bottom)
             Text("Please disable flight mode or connect to WIFI")
+                .multilineTextAlignment(.center)
                 .font(.headline)
                 .foregroundColor(Color(UIColor.secondaryLabel))
         }
