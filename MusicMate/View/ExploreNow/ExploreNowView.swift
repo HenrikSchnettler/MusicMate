@@ -24,8 +24,8 @@ struct ExploreNowView: View {
     
     @State private var showSheet = false
     
-    let confirmDestinations = ["Library"]
-    @State var destinationSelection = "Library"
+    let confirmDestinations = [NSLocalizedString("Library", comment: "")]
+    @State var destinationSelection = NSLocalizedString("Library", comment: "")
     
     @ViewBuilder
     private var backgroundView: some View {
