@@ -22,10 +22,9 @@ struct ExploreNowView: View {
     //object of class which connects to the player which can stream the preview of the songs
     @StateObject var audioPlayer = AudioPlayer(player: AVQueuePlayer())
     
-    @State private var showSheet = false
+    @State private var showSheet = true
     
-    let confirmDestinations = [NSLocalizedString("Library", comment: "")]
-    @State var destinationSelection = NSLocalizedString("Library", comment: "")
+    @State var destinationSelection: DestinationItem = DestinationItem(id: nil, name: NSLocalizedString("Library", comment: ""),isLibrary: true)
     
     @ViewBuilder
     private var backgroundView: some View {
@@ -60,6 +59,7 @@ struct ExploreNowView: View {
                         SkeletonCardView()
                     }
                 }
+                .frame(height: wholeViewGeometry.size.height * 0.81)
                 //Spacer()
                 /*
                  HStack(){
@@ -89,39 +89,20 @@ struct ExploreNowView: View {
                  .padding(.bottom)
                  */
                 
-                Picker(selection: $destinationSelection, label: Text("Target:")) {
-                    ForEach(confirmDestinations, id: \.self) {
-                        Text($0)
-                    }
-                }
-                //.accentColor(Color.white)
-                .frame(width: 150, height: 40)
-                .background(
-                    Color(UIColor.secondarySystemBackground)
-                )
-                .cornerRadius(16)
-                .shadow(radius: 10)
-                
-                RoundedRectangle(cornerRadius: 5)
-                    .fill(.gray)
-                    .frame(width: 75, height: 5)
-                    .padding(.top,10)
-                    .padding(.bottom,10)
-                    .gesture(
-                        DragGesture(minimumDistance: 30, coordinateSpace: .local)
-                            .onEnded { value in
-                                if value.translation.height < 0 {
-                                    self.showSheet = true
-                                }
-                            }
-                    )
-                    .onTapGesture {
-                        self.showSheet = true
-                    }
+                Spacer()
             }
             .sheet(isPresented: $showSheet) {
-                Text("test")
+                SwipeHistoryView(destinationSelection: $destinationSelection)
+                    .environmentObject(audioPlayer)
+                    .presentationDetents([.fraction(0.175), .medium, .large])
+                    .interactiveDismissDisabled(true)
+                    .presentationBackgroundInteraction(
+                        .enabled(upThrough: .fraction(0.175))
+                    )
+                    .presentationCornerRadius(21)
+                    .presentationDragIndicator(.hidden)
             }
+            .cornerRadius(0)
             
             .onDisappear{
                 if audioPlayer.queueCount > 0

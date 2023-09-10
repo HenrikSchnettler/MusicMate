@@ -41,7 +41,7 @@ struct MainView: View {
     
     var body : some View{
         NavigationView{
-            TabView(selection: $selection){
+            Group{
                 //Overview Tab
                 if networkMonitor.networkStatus == .disconnected
                 {
@@ -50,11 +50,6 @@ struct MainView: View {
                         .onAppear(){
                             
                         }
-                        .tabItem {
-                            Text("Explore Now")
-                            Image(systemName: "play.square.stack")
-                            Color.themeAccent
-                        }
                 }
                 else{
                     ExploreNowView()
@@ -62,43 +57,19 @@ struct MainView: View {
                         .onAppear(){
                             
                         }
-                        .tabItem {
-                            Text("Explore Now")
-                            Image(systemName: "play.square.stack")
-                            Color.themeAccent
-                        }
-                }
-                
-                //Tab for the explore Playlist
-                ExploreLaterView()
-                    .tag(Tabs.explorelater)
-                    .onAppear(){
                     
-                    }
-            
-                    .tabItem {
-                        Text("Explore Later")
-                        Image(systemName: "list.bullet.rectangle.fill")
-                        Color.themeAccent
-                    }
-            }
-            .onAppear(){
-                
+                }
             }
             .navigationBarTitle(selection.localizedString.capitalized, displayMode: .automatic)
             .navigationBarItems(trailing:
-                                    ZStack{
+                HStack{
                                         
-                                        
-                                    }
+                }
             )
             .font(Font.headline)
             .accentColor(Color.themeAccent)
-        
         }
         .sheet(isPresented: $showUserInfoSheet, content: {
-            
-            
         })
     }
 }

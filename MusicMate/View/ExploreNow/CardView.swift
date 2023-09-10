@@ -8,6 +8,7 @@
 import SwiftUI
 import AVKit
 import MusicKit
+import CoreData
 
 struct CardView: View {
     @State private var offset = CGSize.zero
@@ -18,10 +19,12 @@ struct CardView: View {
     var isActive: Bool
     var viewShouldBeFinalized: Bool
     @State private var sliderValuePlaceholder: Double = 0
-    @Binding var destinationSelection: String
+    @Binding var destinationSelection: DestinationItem
     //describes the state the app is in
     @Environment(\.scenePhase) var scenePhase
-
+    
+    @Environment(\.managedObjectContext) private var viewContext
+        
     var body: some View {
         VStack{
             GeometryReader { cardGeometry in
@@ -249,6 +252,7 @@ struct CardView: View {
     }
     
     func negativeSwipeEndAction(){
+        insertTrackIntoHistory(wasAdded: false, wasLiked: false, wasDisliked: false)
         //skip to the next song without doing anything (yet)
         audioPlayer.skip()
     }
@@ -257,8 +261,12 @@ struct CardView: View {
         //song should be added to the users library and then the player shoul skip to the next song (for now)
         Task{
             if let insertTrack = item.AppleMusicTrack {
-                if destinationSelection == "Library"{
+                if destinationSelection.isLibrary{
                     try await MusicLibrary.shared.add(item.AppleMusicTrack!)
+                    insertTrackIntoHistory(wasAdded: true, wasLiked: false, wasDisliked: false)
+                }
+                else{
+                    
                 }
             }
         }
@@ -267,6 +275,29 @@ struct CardView: View {
     
     func neutralSwipeEndAction(){
         
+    }
+    
+    func insertTrackIntoHistory(wasAdded: Bool, wasLiked: Bool, wasDisliked: Bool){
+        if let insertTrack = item.AppleMusicTrack {
+            let newItem = SongHistory(context: viewContext)
+            
+            newItem.id = UUID()
+            newItem.album = item.AppleMusicTrack?.albumTitle
+            newItem.artist = item.AppleMusicTrack?.artistName
+            newItem.albumCover = item.AppleMusicExtendedAlbum?.attributes.artwork.url
+            newItem.songId = item.AppleMusicTrack?.id.rawValue
+            newItem.title = item.AppleMusicTrack?.title
+            newItem.timestamp = Date.now
+            newItem.wasAdded = wasAdded
+            newItem.wasDisliked = wasDisliked
+            newItem.wasLiked = wasLiked
+            
+            do {
+                try viewContext.save()
+            } catch {
+                print("Failed to insert history song")
+            }
+        }
     }
 }
 

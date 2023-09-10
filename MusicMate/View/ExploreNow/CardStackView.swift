@@ -9,7 +9,7 @@ import SwiftUI
 
 struct CardStackView: View {
     @EnvironmentObject var audioPlayer: AudioPlayer
-    @Binding var destinationSelection: String
+    @Binding var destinationSelection: DestinationItem
     
     var firstThreeIndices: Range<Array<Item>.Index> {
         return audioPlayer.queue.startIndex..<(audioPlayer.queue.startIndex + min(2, audioPlayer.queue.count))
@@ -26,11 +26,5 @@ struct CardStackView: View {
                 }
             }
         }
-    }
-}
-
-struct CardStackView_Previews: PreviewProvider {
-    static var previews: some View {
-        CardStackView(destinationSelection: .constant("Library"))
     }
 }
