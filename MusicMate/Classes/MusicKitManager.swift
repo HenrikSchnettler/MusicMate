@@ -10,53 +10,62 @@ import MusicKit
 import StoreKit
 import Combine
 
+// A class that manages interactions with the Apple Music API and provides functionality for music playback and user profiles.
 @MainActor
 class MusicKitManager: ObservableObject {
-    //reference to the singleton is reachable over the static constant of the class
+    /// The shared singleton instance of `MusicKitManager`.
     static let shared = MusicKitManager()
-    
-    //Keychain service in initalized
+
+    /// An instance of `KeychainService` for securely managing sensitive data.
     private let keychainService = KeychainService()
-    
-    //The following variables notify the view if they update so they can refresh accordingly
+
+    // MARK: - Published Properties
+
+    /// Indicates whether the initial authorization has been completed.
     @Published var initalAuthentificationComplete = false
+    /// Indicates the authorization status for accessing MusicKit.
     @Published var isAuthorizedForMusicKit: Bool = false
+    /// Holds the user's music subscription details.
     @Published var musicSubscription: MusicSubscription?
     
-    //init of class
+    // MARK: - Initializer
+
+    /// Private initializer to ensure only one instance is created (Singleton).
     private init() {
-        Task{
+        Task {
             await self.performInitialAuthorization()
             self.initalAuthentificationComplete = true
         }
     }
-    
-    //Initial authorization
+
+    // MARK: - Authorization
+
+    /// Performs the initial authorization process for the Apple Music API.
     private func performInitialAuthorization() async -> Void {
         await self.requestMusicAuthorization()
         self.getUserCapabilities()
     }
-    
-    //request apple music authorization
+
+    /// Requests authorization to access Apple Music.
     private func requestMusicAuthorization() async {
         let authorizationStatus = await MusicAuthorization.request()
-        if authorizationStatus == .authorized {
-            self.isAuthorizedForMusicKit = true
-        } else {
-            self.isAuthorizedForMusicKit = false
-        }
+        self.isAuthorizedForMusicKit = authorizationStatus == .authorized
     }
-    
-    //task which subscribes to the subscription capabilities since its first calles and stays active
+
+    /// Subscribes to and listens for updates related to the user's music subscription capabilities.
     private func getUserCapabilities() {
-        Task{
+        Task {
             for await subscription in MusicSubscription.subscriptionUpdates {
                 self.musicSubscription = subscription
             }
         }
     }
     
-    //get the users personal station so we can play recommended songs for the user
+    // MARK: - Music Data Fetching
+
+    /// Fetches the ID of the user's personal music station.
+    ///
+    /// - Returns: The `MusicItemID` of the user's personal station.
     func getUsersPersonalStationId() async -> MusicItemID{
         do{
             //the country code of the user which is needed to access the right catalog of apple music
@@ -78,7 +87,7 @@ class MusicKitManager: ObservableObject {
         }
     }
     
-    //get the users profile information
+    /// Fetches the user's social profile from the Apple Music API. (Not ready yet)
     func getUsersSocialProfile() async -> Void{
         do{
             let url = URL(string: "https://api.music.apple.com/v1/me/account")!
@@ -95,7 +104,11 @@ class MusicKitManager: ObservableObject {
         }
     }
     
-    //gets the next songs for a station because we dont want to play the station directly
+    /// Fetches the next set of tracks for a given music station.
+    ///
+    /// - Parameters:
+    ///   - stationId: The ID of the music station.
+    ///   - trackFoundCallback: A callback executed when a new track is found.
     func getStationsNextTracks(stationId: MusicItemID, trackFoundCallback: @escaping (Track) -> Void) async {
         do {
             //the country code of the user which is needed to access the right catalog of apple music
@@ -124,6 +137,11 @@ class MusicKitManager: ObservableObject {
         }
     }
     
+    /// Fetches an album by its ID.
+    ///
+    /// - Parameters:
+    ///   - songId: The ID of the song from which to retrieve the associated album.
+    ///   - completion: A callback executed upon fetching the album or encountering an error.
     func getAlbumByID(songId: MusicItemID, completion: @escaping (Result<ExtendedAlbum, Error>) -> Void) async {
         do{
             //the country code of the user which is needed to access the right catalog of apple music
@@ -171,7 +189,12 @@ class MusicKitManager: ObservableObject {
         }
     }
     
-    //checks if a song is in the users personal library already
+    /// Checks if a particular song is already present in the user's personal library.
+    ///
+    /// - Parameters:
+    ///   - songId: The ID of the song to check.
+    ///
+    /// - Returns: A Boolean value indicating whether the song is in the user's library.
     func checkIfSongIsInUserLibrary(songId: String) async -> Bool {
         do {
             //the country code of the user which is needed to access the right catalog of apple music
@@ -194,24 +217,29 @@ class MusicKitManager: ObservableObject {
         }
     }
     
-    //Models which hold the decoded response of MusicKit Models
+    // MARK: - Simple Response Models (complicated are stored in their own model files)
     
+    /// Represents the response for fetching station details.
     struct StationResponse: Decodable {
         let data: [Station]
     }
     
+    /// Represents the response for fetching track details.
     struct TrackResponse: Decodable {
         let data: [Track]
     }
     
+    /// Represents the response for fetching song details.
     struct SongResponse: Decodable {
         let data: [Song]
     }
     
+    /// Represents the response for fetching album details.
     struct AlbumResponse: Decodable {
         let data: [Album]
     }
     
+    /// Represents the response for fetching track IDs.
     struct TrackIdResponse: Decodable {
         let data: [Track.ID]
     }
