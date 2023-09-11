@@ -8,6 +8,7 @@
 import Foundation
 
 class KeychainService {
+    //querys the keyChain for a entry
     private func keychainQuery(withService service: String, account: String? = nil) -> [String: AnyObject] {
         var query = [String: AnyObject]()
         query[kSecClass as String] = kSecClassGenericPassword
@@ -19,7 +20,8 @@ class KeychainService {
 
         return query
     }
-
+    
+    //save a entry in the keychain
     func save(key: String, value: String) {
         let data = value.data(using: .utf8)!
         var query = keychainQuery(withService: key)
@@ -30,7 +32,8 @@ class KeychainService {
             print("Could not save data to the keychain.")
         }
     }
-
+    
+    //gets a keychain entry
     func get(key: String) -> String? {
         var query = keychainQuery(withService: key)
         query[kSecMatchLimit as String] = kSecMatchLimitOne
