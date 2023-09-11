@@ -24,6 +24,24 @@ struct CardView: View {
     @Environment(\.scenePhase) var scenePhase
     
     @Environment(\.managedObjectContext) private var viewContext
+    
+    @State private var holdTimer: Timer?
+    @State private var shouldTriggerSpecialAction: Bool = false
+    
+    enum SwipeZone {
+        case left
+        case right
+        case neutral
+    }
+
+    @State private var currentZone: SwipeZone = .neutral
+    @State var animationScaleHeart = 1.0
+    @State var animationScaleDislike = 1.0
+
+    let impactLight = UIImpactFeedbackGenerator(style: .light)
+    let impactMedium = UIImpactFeedbackGenerator(style: .medium)
+    let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+    let impactRigid = UIImpactFeedbackGenerator(style: .rigid)
         
     var body: some View {
         VStack{
@@ -169,9 +187,66 @@ struct CardView: View {
             )
             .overlay(
                 GeometryReader { cardOverlayGeometry in
-                    Rectangle()
-                        .fill(color)
-                        .frame(width: cardOverlayGeometry.size.width, height: cardOverlayGeometry.size.height)
+                    ZStack{
+                        Rectangle()
+                            .fill(color)
+                            .frame(width: cardOverlayGeometry.size.width, height: cardOverlayGeometry.size.height)
+                        
+                        if(shouldTriggerSpecialAction && currentZone == .left){
+                            VStack(alignment: .trailing){
+                                HStack{
+                                    Spacer()
+                                    withAnimation {
+                                        Image(systemName: "hand.thumbsdown.fill")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 100, height: 100)
+                                            .scaleEffect(animationScaleDislike)
+                                            .onAppear {
+                                                animationScaleDislike = 1.0
+                                                let baseAnimation = Animation.easeInOut(duration: 1)
+                                                let repeated = baseAnimation.repeatForever(autoreverses: true)
+                                                
+                                                impactRigid.impactOccurred()
+
+                                                withAnimation(repeated) {
+                                                    animationScaleDislike = 0.8
+                                                }
+                                            }
+                                            .shadow(radius: 20)
+                                    }
+                                }
+                            }
+                            .padding(.trailing, 100)
+                        }
+                        else if(shouldTriggerSpecialAction && currentZone == .right){
+                            VStack(alignment: .leading){
+                                HStack{
+                                    withAnimation {
+                                        Image(systemName: "heart.fill")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 100, height: 100)
+                                            .scaleEffect(animationScaleHeart)
+                                            .onAppear {
+                                                animationScaleHeart = 1.0
+                                                let baseAnimation = Animation.easeInOut(duration: 1)
+                                                let repeated = baseAnimation.repeatForever(autoreverses: true)
+                                                
+                                                impactRigid.impactOccurred()
+
+                                                withAnimation(repeated) {
+                                                    animationScaleHeart = 0.8
+                                                }
+                                            }
+                                            .shadow(radius: 20)
+                                    }
+                                    Spacer()
+                                }
+                            }
+                            .padding(.leading, 100)
+                        }
+                    }
                 }
             )
             .overlay(
@@ -200,15 +275,44 @@ struct CardView: View {
                     withAnimation{
                         changeColor(width: offset.width)
                     }
+                        
+                    let newZone: SwipeZone
+                    if (-500...(-150)).contains(offset.width) {
+                        newZone = .left
+                    } else if (150...500).contains(offset.width) {
+                        newZone = .right
+                    } else {
+                        newZone = .neutral
+                    }
+                        
+                    if newZone != currentZone {
+                        // Cancel the timer if transitioning between zones
+                        holdTimer?.invalidate()
+                        shouldTriggerSpecialAction = false
+
+                        // Start the timer only if we're entering a drop zone
+                        if newZone == .left || newZone == .right {
+                            holdTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { _ in
+                                shouldTriggerSpecialAction = true
+                            }
+                        }
+                        currentZone = newZone
+                    }
                 } .onEnded { _ in
                     withAnimation(.easeOut(duration: 0.5)){
                         swipeCard(width: offset.width)
                         changeColor(width: offset.width)
                     }
-                    let impactMedium = UIImpactFeedbackGenerator(style: .medium)
-                    impactMedium.impactOccurred()
+                    
+                    impactHeavy.impactOccurred()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        doSwipeAction(width: offset.width)
+                        if shouldTriggerSpecialAction {
+                            // Perform the special action
+                            doSwipeAction(width: offset.width, doExtraAction: true)
+                            shouldTriggerSpecialAction = false
+                        } else {
+                            doSwipeAction(width: offset.width, doExtraAction: false)
+                        }
                     }
                 }
         )
@@ -229,12 +333,22 @@ struct CardView: View {
         }
     }
     
-    func doSwipeAction(width: CGFloat){
+    func doSwipeAction(width: CGFloat, doExtraAction: Bool){
         switch width {
         case -500...(-150):
-            negativeSwipeEndAction()
+            if(doExtraAction){
+                negativeSwipeEndAction(wasDisliked: true)
+            }
+            else{
+                negativeSwipeEndAction(wasDisliked: false)
+            }
         case 150...500:
-            positiveSwipeEndAction()
+            if(doExtraAction){
+                positiveSwipeEndAction(wasLiked: true)
+            }
+            else{
+                positiveSwipeEndAction(wasLiked: false)
+            }
         default:
             neutralSwipeEndAction()
         }
@@ -251,19 +365,19 @@ struct CardView: View {
         }
     }
     
-    func negativeSwipeEndAction(){
-        insertTrackIntoHistory(wasAdded: false, wasLiked: false, wasDisliked: false)
+    func negativeSwipeEndAction(wasDisliked: Bool){
+        insertTrackIntoHistory(wasAdded: false, wasLiked: false, wasDisliked: wasDisliked)
         //skip to the next song without doing anything (yet)
         audioPlayer.skip()
     }
     
-    func positiveSwipeEndAction(){
+    func positiveSwipeEndAction(wasLiked: Bool){
         //song should be added to the users library and then the player shoul skip to the next song (for now)
         Task{
             if let insertTrack = item.AppleMusicTrack {
                 if destinationSelection.isLibrary{
                     try await MusicLibrary.shared.add(item.AppleMusicTrack!)
-                    insertTrackIntoHistory(wasAdded: true, wasLiked: false, wasDisliked: false)
+                    insertTrackIntoHistory(wasAdded: true, wasLiked: wasLiked, wasDisliked: false)
                 }
                 else{
                     
