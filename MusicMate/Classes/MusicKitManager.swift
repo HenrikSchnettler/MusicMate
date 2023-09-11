@@ -11,7 +11,7 @@ import StoreKit
 import Combine
 
 // A class that manages interactions with the Apple Music API and provides functionality for music playback and user profiles.
-@MainActor
+@MainActor //Ensure updates are on the main thread
 class MusicKitManager: ObservableObject {
     /// The shared singleton instance of `MusicKitManager`.
     static let shared = MusicKitManager()
