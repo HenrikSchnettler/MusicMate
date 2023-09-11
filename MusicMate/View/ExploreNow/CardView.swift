@@ -202,6 +202,7 @@ struct CardView: View {
                                             .scaledToFit()
                                             .frame(width: 100, height: 100)
                                             .scaleEffect(animationScaleDislike)
+                                            .foregroundColor(.white)
                                             .onAppear {
                                                 animationScaleDislike = 1.0
                                                 let baseAnimation = Animation.easeInOut(duration: 1)
@@ -228,6 +229,7 @@ struct CardView: View {
                                             .scaledToFit()
                                             .frame(width: 100, height: 100)
                                             .scaleEffect(animationScaleHeart)
+                                            .foregroundColor(.white)
                                             .onAppear {
                                                 animationScaleHeart = 1.0
                                                 let baseAnimation = Animation.easeInOut(duration: 1)
