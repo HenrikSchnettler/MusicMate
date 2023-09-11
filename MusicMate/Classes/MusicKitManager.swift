@@ -18,8 +18,7 @@ class MusicKitManager: ObservableObject {
     //Keychain service in initalized
     private let keychainService = KeychainService()
     
-    //The following variables notify the view if they update to it can refresh
-    //@Published var authorizationStatus = SKCloudServiceAuthorizationStatus.notDetermined
+    //The following variables notify the view if they update so they can refresh accordingly
     @Published var initalAuthentificationComplete = false
     @Published var isAuthorizedForMusicKit: Bool = false
     @Published var musicSubscription: MusicSubscription?
@@ -60,6 +59,7 @@ class MusicKitManager: ObservableObject {
     //get the users personal station so we can play recommended songs for the user
     func getUsersPersonalStationId() async -> MusicItemID{
         do{
+            //the country code of the user which is needed to access the right catalog of apple music
             let countryCode = try await MusicDataRequest.currentCountryCode
             
             let url = URL(string: "https://api.music.apple.com/v1/catalog/\(countryCode)/stations?filter[identity]=personal")!
@@ -98,11 +98,13 @@ class MusicKitManager: ObservableObject {
     //gets the next songs for a station because we dont want to play the station directly
     func getStationsNextTracks(stationId: MusicItemID, trackFoundCallback: @escaping (Track) -> Void) async {
         do {
+            //the country code of the user which is needed to access the right catalog of apple music
             let countryCode = try await MusicDataRequest.currentCountryCode
 
             let url = URL(string: "https://api.music.apple.com/v1/me/stations/next-tracks/\(stationId)?limit=10&include=albums&extend=editorialVideo")!
             var urlRequest = URLRequest(url: url)
-            urlRequest.httpMethod = "POST" //httpMethod must be POST as seen in the network request from the apple music web app
+            //httpMethod must be POST as seen in the network request from the apple music web app
+            urlRequest.httpMethod = "POST"
 
             let dataRequest = MusicDataRequest(urlRequest: urlRequest)
 
@@ -111,6 +113,7 @@ class MusicKitManager: ObservableObject {
             let decoder = JSONDecoder()
             let trackResponse = try decoder.decode(TrackResponse.self, from: dataResponse.data)
             for item in trackResponse.data {
+                //check for every song in the response if it is currently in the users library
                 if await !self.checkIfSongIsInUserLibrary(songId: item.id.rawValue) {
                     trackFoundCallback(item)
                 }
@@ -123,16 +126,19 @@ class MusicKitManager: ObservableObject {
     
     func getAlbumByID(songId: MusicItemID, completion: @escaping (Result<ExtendedAlbum, Error>) -> Void) async {
         do{
+            //the country code of the user which is needed to access the right catalog of apple music
             let countryCode = try await MusicDataRequest.currentCountryCode
-            
+            //the superior developer token which is used to get the dynamic album art for the songs (used for personal use only)
+            let superiorDeveloperToken = "Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldlYlBsYXlLaWQifQ.eyJpc3MiOiJBTVBXZWJQbGF5IiwiaWF0IjoxNjkwNDA2ODM1LCJleHAiOjE2OTc2NjQ0MzUsInJvb3RfaHR0cHNfb3JpZ2luIjpbImFwcGxlLmNvbSJdfQ.seFShNhCiGuoj5qBOqECAoKBtKJF0wN-KaEj4HICJnExwXtnYabeb0jTSSrK1uez5b6XvYUOsx0pgARKm1AJQg"
             let url = URL(string: "https://amp-api.music.apple.com/v1/catalog/\(countryCode)/songs/\(songId)/albums?extend=editorialArtwork,editorialVideo,extendedAssetUrls,offers")!
             var urlRequest = URLRequest(url: url)
             
             urlRequest.httpMethod = "GET"
             
+            //the superior developer token is sent via the Authorization header
+            urlRequest.setValue(superiorDeveloperToken, forHTTPHeaderField: "Authorization")
             
-            urlRequest.setValue("Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldlYlBsYXlLaWQifQ.eyJpc3MiOiJBTVBXZWJQbGF5IiwiaWF0IjoxNjkwNDA2ODM1LCJleHAiOjE2OTc2NjQ0MzUsInJvb3RfaHR0cHNfb3JpZ2luIjpbImFwcGxlLmNvbSJdfQ.seFShNhCiGuoj5qBOqECAoKBtKJF0wN-KaEj4HICJnExwXtnYabeb0jTSSrK1uez5b6XvYUOsx0pgARKm1AJQg", forHTTPHeaderField: "Authorization")
-            
+            //the origin has to be set to the apple music web app in order for the dev token to work
             urlRequest.setValue("https://music.apple.com", forHTTPHeaderField: "Origin")
             
             let task = URLSession.shared.dataTask(with: urlRequest) { (data, response, error) in
@@ -151,6 +157,7 @@ class MusicKitManager: ObservableObject {
                 // Decode JSON
                 do {
                     let decoder = JSONDecoder()
+                    //the response is encoded into the cusotm ExtendedAlbumResponse Model which is a extension of the MusicKit model with extra fields like the dynamic album cover
                     let albumResponse = try decoder.decode(ExtendedAlbumResponse.self, from: data)
                     completion(.success(albumResponse.data.first!))
                 } catch {
@@ -164,8 +171,10 @@ class MusicKitManager: ObservableObject {
         }
     }
     
+    //checks if a song is in the users personal library already
     func checkIfSongIsInUserLibrary(songId: String) async -> Bool {
         do {
+            //the country code of the user which is needed to access the right catalog of apple music
             let countryCode = try await MusicDataRequest.currentCountryCode
 
             let libURL = URL(string: "https://api.music.apple.com/v1/catalog/\(countryCode)/songs/\(songId)/library?relate=library")!
@@ -184,6 +193,8 @@ class MusicKitManager: ObservableObject {
             return false
         }
     }
+    
+    //Models which hold the decoded response of MusicKit Models
     
     struct StationResponse: Decodable {
         let data: [Station]
