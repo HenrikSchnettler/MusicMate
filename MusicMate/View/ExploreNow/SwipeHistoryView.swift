@@ -7,21 +7,27 @@
 
 import SwiftUI
 
+// A view to showcase the history of songs the user has swiped on.
 struct SwipeHistoryView: View {
+    // Reference to Core Data's managed object context.
     @Environment(\.managedObjectContext) private var viewContext
     
+    // Binding to handle destination selection.
     @Binding var destinationSelection: DestinationItem
     let confirmDestinations = [
         DestinationItem(id: nil, name: NSLocalizedString("Library", comment: ""),isLibrary: true)
     ]
     
+    // A fetch request to retrieve songs sorted by the time they were swiped.
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \SongHistory.timestamp, ascending: false)],
         animation: .easeIn)
     private var historySongs: FetchedResults<SongHistory>
     
+    // State variable to manage filtering the history by song's addition status.
     @State private var filterBySelection = 0
     
+    // Audio player instance to retrieve info about the current playing song.
     @EnvironmentObject var audioPlayer: AudioPlayer
     
     var body: some View {
@@ -31,17 +37,20 @@ struct SwipeHistoryView: View {
                     List{
                         Section(header: Text("The last swipes")){
                             ForEach(historySongs) { item in
+                                // Conditional logic to determine if a history item should be shown based on the filter.
                                 if((filterBySelection == 0 && (item.wasAdded || !item.wasAdded)) || (filterBySelection == 1 && item.wasAdded) || (filterBySelection == 2 && !item.wasAdded))
                                 {
                                     HStack(alignment: .center){
+                                        // Displaying the song's artwork.
                                         VStack(alignment: .leading){
                                             AsyncImage(url: URL(string: String(item.albumCover ?? "").replacingOccurrences(of: "{w}", with: String(Int(fullGeometry.size.width*0.1))).replacingOccurrences(of: "{h}", with: String(Int(fullGeometry.size.width*0.1))).replacingOccurrences(of: "{f}", with: "png"))) { image in
-                                                // This closure is called once the image is downloaded.
+                                                // Once image is downloaded, apply styles.
                                                 image
                                                     .resizable()
                                                     .shadow(radius: 20)
                                                     .cornerRadius(32)
                                             } placeholder: {
+                                                // Placeholder while the image is being downloaded.
                                                 VisualEffectView(effect: UIBlurEffect(style: .light))
                                                     .redacted(reason: .placeholder)
                                                     .shimmer()
@@ -49,6 +58,8 @@ struct SwipeHistoryView: View {
                                             }
                                             .frame(width: fullGeometry.size.width*0.1, height: fullGeometry.size.width*0.1)
                                         }
+                                        
+                                        // Displaying song's title and artist name.
                                         VStack(alignment: .leading){
                                             Text(item.title ?? "Unknown name")
                                                 .font(.headline)
@@ -60,6 +71,7 @@ struct SwipeHistoryView: View {
                                         
                                         Spacer()
                                         
+                                        // Icons to indicate whether a song was added, liked, or disliked.
                                         if(item.wasAdded){
                                             if(item.wasLiked)
                                             {
@@ -87,6 +99,8 @@ struct SwipeHistoryView: View {
                 }
             }
             .toolbar {
+            // Toolbar items.
+                // Picker for changing the destination.
                 ToolbarItem(placement: .navigationBarLeading) {
                     HStack{
                         Picker("Destination", selection: $destinationSelection) {
@@ -107,6 +121,7 @@ struct SwipeHistoryView: View {
                     }
                     .padding(.vertical)
                 }
+                // Share button to share the currently playing song's link.
                 ToolbarItem(placement: .navigationBarLeading) {
                     HStack{
                         if let shareUrl = audioPlayer.queue.first?.AppleMusicTrack?.url{
@@ -143,6 +158,7 @@ struct SwipeHistoryView: View {
                     }
                     .padding(.vertical)
                 }
+                // Picker for filtering songs by their status (All, Added, Not Added).
                 ToolbarItem(placement: .navigationBarLeading) {
                     HStack{
                         Picker("", selection: $filterBySelection) {
@@ -171,3 +187,4 @@ struct SwipeHistoryView: View {
         }
     }
 }
+

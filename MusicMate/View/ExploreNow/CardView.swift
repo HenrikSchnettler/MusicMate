@@ -11,73 +11,115 @@ import MusicKit
 import CoreData
 
 struct CardView: View {
+    // MARK: - State Properties
+        
+    // Represents the card's offset from its initial position.
     @State private var offset = CGSize.zero
-    @State private var color: Color = .white.opacity(0)
-    @EnvironmentObject var audioPlayer: AudioPlayer
-    @Environment(\.colorScheme) var colorScheme
-    @ObservedObject var item: AudioPlayerItem
-    var isActive: Bool
-    var viewShouldBeFinalized: Bool
-    @State private var sliderValuePlaceholder: Double = 0
-    @Binding var destinationSelection: DestinationItem
-    //describes the state the app is in
-    @Environment(\.scenePhase) var scenePhase
-    
-    @Environment(\.managedObjectContext) private var viewContext
-    
-    @State private var holdTimer: Timer?
-    @State private var shouldTriggerSpecialAction: Bool = false
-    
-    enum SwipeZone {
-        case left
-        case right
-        case neutral
-    }
 
+    // Represents the card's color, initially set to an opaque white.
+    @State private var color: Color = .white.opacity(0)
+
+    // MARK: - Environment Objects & Bindings
+
+    // Injected audio player object.
+    @EnvironmentObject var audioPlayer: AudioPlayer
+
+    // Current color scheme (light/dark mode).
+    @Environment(\.colorScheme) var colorScheme
+
+    // Audio player item to display.
+    @ObservedObject var item: AudioPlayerItem
+
+    // Indicates whether the card view is active.
+    var isActive: Bool
+
+    // Determines if the view should be finalized.
+    var viewShouldBeFinalized: Bool
+
+    // Placeholder value for the slider component.
+    @State private var sliderValuePlaceholder: Double = 0
+
+    // Represents the selected destination for navigation.
+    @Binding var destinationSelection: DestinationItem
+
+    // Provides the current state of the app (e.g. background, inactive, active).
+    @Environment(\.scenePhase) var scenePhase
+
+    // Represents the CoreData managed object context.
+    @Environment(\.managedObjectContext) private var viewContext
+
+    // Timer for holding down a gesture.
+    @State private var holdTimer: Timer?
+
+    // Indicates if a special action should be triggered.
+    @State private var shouldTriggerSpecialAction: Bool = false
+
+    // MARK: - Enumerations
+
+    // Enum representing swipe directions.
+    enum SwipeZone {
+        case left, right, neutral
+    }
+    // Current swipe direction.
     @State private var currentZone: SwipeZone = .neutral
+
+    // Scale factors for heart and dislike animations.
     @State var animationScaleHeart = 1.0
     @State var animationScaleDislike = 1.0
-
+    // Haptic feedback generators.
     let impactLight = UIImpactFeedbackGenerator(style: .light)
     let impactMedium = UIImpactFeedbackGenerator(style: .medium)
     let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
     let impactRigid = UIImpactFeedbackGenerator(style: .rigid)
-        
+
+    // MARK: - Body
+
+    // The main view rendering body.
     var body: some View {
         VStack{
+            // MARK: - Background
+            
+            // geometry of the whole card
             GeometryReader { cardGeometry in
                 VStack {
                     if viewShouldBeFinalized {
-                        if let liveArtwork = item.AppleMusicExtendedAlbum?.attributes.editorialVideo?.motionDetailTall?.video {
+                        // when instance of the card is near of beeing active the view the artwork should be shown
+                        if let liveArtwork =
+                            // if given show the liveArtwork as a video loop
+                            item.AppleMusicExtendedAlbum?.attributes.editorialVideo?.motionDetailTall?.video {
                             VideoPlayerView(url: URL(string: liveArtwork)!, isActive: isActive)
                         }
+                        // if there isnt found any liveArtwork there should be shown the static album cover
                         else if let staticArtwork = item.AppleMusicExtendedAlbum?.attributes.artwork.url {
                             AsyncImage(url: URL(string: String(staticArtwork).replacingOccurrences(of: "{w}", with: String(Int(cardGeometry.size.width))).replacingOccurrences(of: "{h}", with: String(Int(cardGeometry.size.height))).replacingOccurrences(of: "{f}", with: "jpg"))) { image in
                                 // This closure is called once the image is downloaded.
                                 image
                                     .resizable()
-                                    //.scaledToFit()
+                                    // image is overlayed by a frosted glass effect
                                     .overlay(
                                         VisualEffectView(effect: UIBlurEffect(style: .light))
                                     )
                             } placeholder: {
-                                
+                                // placeholder while image is loading
                             }
                             .frame(width: cardGeometry.size.width, height: cardGeometry.size.height) // Set the width to the parent's width
                         }
                     }
                 }
             }
+            // the card should take all available space
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            //.overlay(
-                //VisualEffectView(effect: UIBlurEffect(style: .dark))
-                                //.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            //)
             .overlay(
+                // MARK: - First Overlay
+                
+                // geometry of the first overlay
                 GeometryReader { cardOverlayGeometry in
                     VStack {
                         HStack(alignment: .center){
+                            // MARK: - First Overlay artwork Container
+                            // geometry of the artwork container
                             GeometryReader { artWorkOverlayGeometry in
+                                // when instance of the card is near of beeing active and there is only a static artwork it is shown over the frosted glass view
                                 if viewShouldBeFinalized {
                                     if let liveArtwork = item.AppleMusicExtendedAlbum?.attributes.editorialVideo?.motionDetailTall?.video{
                                         
@@ -90,6 +132,7 @@ struct CardView: View {
                                                 .shadow(radius: 20)
                                                 .cornerRadius(16)
                                         } placeholder: {
+                                            // when image is loading there should be shown a skeleton view placeholder witb a shimmer effect
                                             VisualEffectView(effect: UIBlurEffect(style: .light))
                                                 .redacted(reason: .placeholder)
                                                 .shimmer()
@@ -102,7 +145,11 @@ struct CardView: View {
                         }
                         .padding()
                         .frame(width: cardOverlayGeometry.size.width, height: cardOverlayGeometry.size.height * 0.67)
+                        
+                        // MARK: - First Overlay slider container
+                        
                         HStack(alignment: .bottom){
+                            // if the current song is ready show the duration slider
                             if item.duration > 0 {
                                 Slider(value: $item.progress, in: 0...item.duration, onEditingChanged: { editing in
                                     if !editing {
@@ -110,15 +157,15 @@ struct CardView: View {
                                     }
                                 })
                                 .padding(.horizontal)
-                                //.padding(.bottom, 10)
                             }
+                            // if the current song is not ready yet show a placeholder slider (It cant´t be accessed yet since the whole card is disabled at this point)
                             else{
                                 Slider(value: $sliderValuePlaceholder, in: 0...100)
                                 .padding(.horizontal)
-                                //.padding(.bottom, 10)
                             }
                         }
                         .frame(width: cardOverlayGeometry.size.width, height: cardOverlayGeometry.size.height * 0.080)
+                        // Empty Drag gesture to block the space around the slider so the user doesnt accidentally drag the whole card around when seeking in the current song
                         .gesture(
                             DragGesture()
                                 .onChanged{ gesture in
@@ -127,13 +174,18 @@ struct CardView: View {
                                     
                                 }
                         )
+                        
+                        // MARK: - First Overlay song information container
+                        
                         VisualEffectView(effect: UIBlurEffect(style: .light))
                             .frame(width: cardOverlayGeometry.size.width, height: cardOverlayGeometry.size.height * 0.23)
                             .shadow(radius: 20)
                             .overlay(
+                                // geometry of the song info container
                                 GeometryReader { songInfoOverlayGeometry in
                                         HStack(alignment: .center){
                                             VStack(alignment: .leading){
+                                                // show pause button when song is currently playing
                                                 if(item.isPlaying ?? false)
                                                 {
                                                     Button(action: {
@@ -147,6 +199,7 @@ struct CardView: View {
                                                             .shadow(radius: 20)
                                                     }
                                                 }
+                                                // show pause button when song is paused or hasn´t been started yet
                                                 else{
                                                     Button(action: {
                                                         audioPlayer.player.play()
@@ -163,11 +216,12 @@ struct CardView: View {
                                             .frame(width: 50)
                                             .padding(.leading,20)
                                             .padding(.trailing,10)
+                                            // song informations
                                             VStack(alignment: .leading){
                                                 Text(item.AppleMusicTrack?.title ?? "")
                                                     .font(.headline)
                                                     .shadow(color: .gray, radius: 2, x: 0, y: 0)
-                                                //Text(item.AppleMusicTrack?.albumTitle ?? "")
+                                                
                                                 Text(item.AppleMusicTrack?.artistName ?? "")
                                                     .font(.subheadline)
                                                     .shadow(color: .gray, radius: 1, x: 0, y: 0)
@@ -186,12 +240,17 @@ struct CardView: View {
                 }
             )
             .overlay(
+                // MARK: - Second Overlay
+                
+                // geometry of the second overlay
                 GeometryReader { cardOverlayGeometry in
                     ZStack{
+                        // fill up whole card with a color based on the active dropzone
                         Rectangle()
                             .fill(color)
                             .frame(width: cardOverlayGeometry.size.width, height: cardOverlayGeometry.size.height)
                         
+                        // if the user hold the card in the left dropzone for a longer time it should be shown a dislike image animation
                         if(shouldTriggerSpecialAction && currentZone == .left){
                             VStack(alignment: .trailing){
                                 HStack{
@@ -220,6 +279,7 @@ struct CardView: View {
                             }
                             .padding(.trailing, 100)
                         }
+                        // if the user hold the card in the right dropzone for a longer time it should be shown a like image animation
                         else if(shouldTriggerSpecialAction && currentZone == .right){
                             VStack(alignment: .leading){
                                 HStack{
@@ -252,8 +312,11 @@ struct CardView: View {
                 }
             )
             .overlay(
+                // MARK: - Third Overlay
+                
                 GeometryReader { cardOverlayGeometry in
                     Group{
+                        // if current color theme is set to dark mode show a fine border around the card
                         if colorScheme == .dark
                         {
                             RoundedRectangle(cornerRadius: 16)
@@ -263,9 +326,9 @@ struct CardView: View {
                 }
             )
         }
-        //.background(Color(UIColor.systemBackground))
         .background(Color(UIColor.systemBackground))
         .cornerRadius(16)
+        // show a shadow around the card (only vivible in light mode) and instance of the card is near of beeing active
         .shadow(radius: viewShouldBeFinalized ? 4 : 0)
         .padding()
         .offset(x: offset.width, y: offset.height * 0.4)
@@ -273,11 +336,15 @@ struct CardView: View {
         .gesture(
             DragGesture()
                 .onChanged{ gesture in
+                    // Update the offset based on user's drag
                     offset = gesture.translation
+                    
+                    // Animate color change based on drag's width
                     withAnimation{
                         changeColor(width: offset.width)
                     }
-                        
+                    
+                    // Determine the new zone based on the drag width
                     let newZone: SwipeZone
                     if (-500...(-150)).contains(offset.width) {
                         newZone = .left
@@ -286,7 +353,8 @@ struct CardView: View {
                     } else {
                         newZone = .neutral
                     }
-                        
+                    
+                    // Check if the user has transitioned between zones
                     if newZone != currentZone {
                         // Cancel the timer if transitioning between zones
                         holdTimer?.invalidate()
@@ -300,16 +368,20 @@ struct CardView: View {
                         }
                         currentZone = newZone
                     }
-                } .onEnded { _ in
+                }
+                .onEnded { _ in
+                    // Animate the card swipe and color change based on drag's width
                     withAnimation(.easeOut(duration: 0.5)){
                         swipeCard(width: offset.width)
                         changeColor(width: offset.width)
                     }
                     
+                    // Provide haptic feedback
                     impactHeavy.impactOccurred()
+                    
+                    // Schedule the swipe action after animation completes
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         if shouldTriggerSpecialAction {
-                            // Perform the special action
                             doSwipeAction(width: offset.width, doExtraAction: true)
                             shouldTriggerSpecialAction = false
                         } else {
@@ -318,44 +390,35 @@ struct CardView: View {
                     }
                 }
         )
-        //view should only be interactable if it is marked active
+        // Disable user interaction if the view is not marked as active
         .disabled(!isActive)
     }
     
+    // Function to determine the final position of the card based on drag width
     func swipeCard(width: CGFloat){
         switch width {
         case -500...(-150):
             offset = CGSize(width: -500, height: 0)
-            //negativeSwipe()
         case 150...500:
             offset = CGSize(width: 500, height: 0)
-            //positiveSwipe()
         default:
             offset = .zero
         }
     }
-    
+
+    // Function to determine the action after card swipe based on drag width and additional conditions
     func doSwipeAction(width: CGFloat, doExtraAction: Bool){
         switch width {
         case -500...(-150):
-            if(doExtraAction){
-                negativeSwipeEndAction(wasDisliked: true)
-            }
-            else{
-                negativeSwipeEndAction(wasDisliked: false)
-            }
+            negativeSwipeEndAction(wasDisliked: doExtraAction)
         case 150...500:
-            if(doExtraAction){
-                positiveSwipeEndAction(wasLiked: true)
-            }
-            else{
-                positiveSwipeEndAction(wasLiked: false)
-            }
+            positiveSwipeEndAction(wasLiked: doExtraAction)
         default:
             neutralSwipeEndAction()
         }
     }
-    
+
+    // Function to change color of the view based on drag width
     func changeColor(width: CGFloat){
         switch width {
         case -500...(-130):
@@ -366,48 +429,48 @@ struct CardView: View {
             color = .white.opacity(0)
         }
     }
-    
+
+    // Actions to perform after a negative swipe
     func negativeSwipeEndAction(wasDisliked: Bool){
         insertTrackIntoHistory(wasAdded: false, wasLiked: false, wasDisliked: wasDisliked)
-        //skip to the next song without doing anything (yet)
         audioPlayer.skip()
     }
-    
+
+    // Actions to perform after a positive swipe
     func positiveSwipeEndAction(wasLiked: Bool){
-        //song should be added to the users library and then the player shoul skip to the next song (for now)
         Task{
             if let insertTrack = item.AppleMusicTrack {
-                if destinationSelection.isLibrary{
+                if destinationSelection.isLibrary {
                     try await MusicLibrary.shared.add(item.AppleMusicTrack!)
                     insertTrackIntoHistory(wasAdded: true, wasLiked: wasLiked, wasDisliked: false)
-                }
-                else{
-                    
                 }
             }
         }
         audioPlayer.skip()
     }
-    
+
+    // Actions to perform after a neutral swipe
     func neutralSwipeEndAction(){
         
     }
-    
+
+    // Function to insert a song's details into history
     func insertTrackIntoHistory(wasAdded: Bool, wasLiked: Bool, wasDisliked: Bool){
         if let insertTrack = item.AppleMusicTrack {
             let newItem = SongHistory(context: viewContext)
-            
+            // Setting properties for the song history item
             newItem.id = UUID()
-            newItem.album = item.AppleMusicTrack?.albumTitle
-            newItem.artist = item.AppleMusicTrack?.artistName
+            newItem.album = insertTrack.albumTitle
+            newItem.artist = insertTrack.artistName
             newItem.albumCover = item.AppleMusicExtendedAlbum?.attributes.artwork.url
-            newItem.songId = item.AppleMusicTrack?.id.rawValue
-            newItem.title = item.AppleMusicTrack?.title
+            newItem.songId = insertTrack.id.rawValue
+            newItem.title = insertTrack.title
             newItem.timestamp = Date.now
             newItem.wasAdded = wasAdded
             newItem.wasDisliked = wasDisliked
             newItem.wasLiked = wasLiked
             
+            // Try to save the new item to the context
             do {
                 try viewContext.save()
             } catch {
