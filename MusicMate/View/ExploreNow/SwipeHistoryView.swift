@@ -105,11 +105,10 @@ struct SwipeHistoryView: View {
                     HStack{
                         Picker("Destination", selection: $destinationSelection) {
                             ForEach(confirmDestinations, id: \.id) { item in
-                                HStack{
-                                    Text(item.name).tag(item)
-                                }
+                                Text(item.name).tag(item)
                             }
                         }
+                        .labelsHidden()
                         .foregroundColor(.white)
                         .font(.system(size: 15))
                         .frame(minHeight: 30, maxHeight: 30, alignment: .center)
