@@ -421,7 +421,7 @@ struct CardView: View {
     // Function to change color of the view based on drag width
     func changeColor(width: CGFloat){
         switch width {
-        case -500...(-130):
+        case -500...(-150):
             color = .red.opacity(0.4)
         case 150...500:
             color = .green.opacity(0.4)
