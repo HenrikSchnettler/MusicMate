@@ -4,8 +4,6 @@
 
 MusicMate is an iOS application developed as a personal project to serve as an extension to the Apple Music app. It introduces enhanced functionalities not present in the default Apple Music app. The primary feature of MusicMate is its ability to suggest song previews to users based on their preferences, retrieved directly from the Apple Music API or through the MusicKit wrapper.
 
-<img src="screenshots/swipe.gif" alt="Gif Showcase"/>
-
 <table>
   <tr>
     <td>
@@ -16,6 +14,8 @@ MusicMate is an iOS application developed as a personal project to serve as an e
     </td>
   </tr>
 </table>
+
+<img src="screenshots/swipe.gif" alt="Gif Showcase"/>
 
 ## Features
 
