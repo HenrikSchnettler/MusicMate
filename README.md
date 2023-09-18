@@ -7,7 +7,7 @@ MusicMate is an iOS application developed as a personal project to serve as an e
 <table>
   <tr>
     <td>
-        <img src="screenshots/swipe.GIF" alt="Gif Showcase"/>
+        <img src="screenshots/swipe.gif" alt="Gif Showcase"/>
     </td>
     <td>
         <img src="screenshots/dynamic_artwork.PNG" alt="Dynamic Artwork"/>
