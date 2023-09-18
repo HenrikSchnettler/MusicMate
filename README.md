@@ -7,6 +7,10 @@ MusicMate is an iOS application developed as a personal project to serve as an e
 ![Dynamic Artwork](screenshots/dynamic_artwork.PNG)
 ![Static Artwork](screenshots/static_artwork.PNG)
 
+<img src="screenshots/dynamic_artwork.PNG" alt="Dynamic Artwork" width=30% height=30%/>
+<img src="screenshots/static_artwork.PNG" alt="Static Artwork" width=30% height=30%/>
+
+
 ## Features
 
 - **Song Suggestions**: Directly tap into the potential of Apple Music's vast library and get song suggestions tailored to your liking.
