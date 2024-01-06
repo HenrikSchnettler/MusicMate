@@ -115,6 +115,11 @@ class AudioPlayerItem: ObservableObject, Identifiable {
         }
     }
     
+    // Suspend the progress Observer.
+    private func suspendProgressObserver() {
+        NotificationCenter.default.removeObserver(self.progressObserver)
+    }
+    
     // Seek to a specific progress point in the current player item.
     func seek(to progress: Double) {
         let time = CMTime(seconds: progress, preferredTimescale: 1000)
