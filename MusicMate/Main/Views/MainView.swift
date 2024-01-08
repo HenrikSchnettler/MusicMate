@@ -8,9 +8,6 @@
 import SwiftUI
 import CoreData
 
-import SwiftUI
-import CoreData
-
 // Enum representing the tabs in the app. Each tab's rawValue is a string key that can be localized.
 enum Tabs: String{
     case home = "appname"
