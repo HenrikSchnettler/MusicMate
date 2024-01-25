@@ -25,61 +25,35 @@ enum Tabs: String{
 }
 
 struct MainView: View {
+    // 'vm' is an instance of MainViewModel, used to manage the data and logic for the main interface.
+    @ObservedObject private var vm: MainViewModel
     
-    @Environment(\.managedObjectContext) private var viewContext  // Core Data context for any database operations.
+    // 'audioPlayer' is an instance of AudioPlayer, responsible for managing audio playback within the app.
+    @ObservedObject private var audioPlayer: AudioPlayer
     
-    // Tracks which tab is currently selected. Default is the home tab.
-    @State var selection: Tabs = .home
-    
-    // Reference to the network monitor to check the network status.
-    @EnvironmentObject var networkMonitor: NetworkMonitor
-    
-    // State variable to track if the user info sheet should be presented.
-    @State var showUserInfoSheet: Bool = false
-    
-    init() {
-        // Initialization logic that is executed when an instance of MainView is created. Currently, it's empty.
+    // The initializer for MainView, requiring instances of MainViewModel and AudioPlayer.
+    init(vm: MainViewModel, audioPlayer: AudioPlayer) {
+        self.vm = vm
+        self.audioPlayer = audioPlayer
     }
-    
+
     var body: some View {
-        NavigationView{
-            Group{
-                // Display OfflineView if there's no network connection.
-                if networkMonitor.networkStatus == .disconnected
-                {
+        NavigationView {
+            // Group acts as a container that doesn’t add any additional UI elements but groups the content.
+            Group {
+                // Displays OfflineView when there's no network connection.
+                if !vm.isConnectedToNetwork {
                     OfflineView()
                         .tag(Tabs.home)
-                        .onAppear(){
-                            // Actions to be performed when OfflineView appears.
-                        }
-                }
-                // If there's a network connection, display ExploreNowView.
-                else {
-                    ExploreNowView()
-                        .tag(Tabs.home)
-                        .onAppear(){
-                            // Actions to be performed when ExploreNowView appears.
-                        }
+                } else {
+                    // ExploreNowView is presented when there's network connectivity.
+                    ExploreNowView(vm: ExploreNowViewModel(audioPlayer: audioPlayer, musicKitManager: MusicKitManager.shared))
+                        .tag(Tabs.home) // Similarly, assigns a tag for navigation or tabbed interface.
                 }
             }
-            .navigationBarTitle(selection.localizedString.capitalized, displayMode: .automatic) // Set the navigation bar title based on the currently selected tab.
-            .navigationBarItems(trailing:
-                HStack{
-                    // Trailing navigation bar items. Currently, it's empty.
-                }
-            )
-            .font(Font.headline) // Set the default font for elements in this view.
-            .accentColor(Color.themeAccent) // Set the accent color for the view.
+            .navigationBarTitle(vm.selection.localizedString.capitalized, displayMode: .automatic) // Sets the navigation bar title dynamically based on the viewModel's selection.
+            .font(Font.headline) // Applies a headline font style to the text within this navigation view.
+            .accentColor(Color.themeAccent) // Sets the accent color for this view.
         }
-        .sheet(isPresented: $showUserInfoSheet, content: {
-            // Content to be shown in the sheet when `showUserInfoSheet` is true. Currently, it's empty.
-        })
-    }
-}
-
-struct MainView_Previews: PreviewProvider {
-    static var previews: some View {
-        MainView()
-            .preferredColorScheme(.dark)
     }
 }

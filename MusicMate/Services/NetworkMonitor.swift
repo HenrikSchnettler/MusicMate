@@ -10,10 +10,6 @@ import Combine
 
 //A class responsible for monitoring the network status.
 class NetworkMonitor: ObservableObject {
-
-    // A shared instance of the NetworkMonitor class to avoid multiple instances of network monitoring.
-    static let shared = NetworkMonitor()
-
     // A monitor that checks the status of the network.
     var monitor: NWPathMonitor?
 
@@ -34,7 +30,7 @@ class NetworkMonitor: ObservableObject {
     }
 
     // Private initializer to ensure only one instance of NetworkMonitor is created.
-    private init() {
+    init() {
         // Initialize the NWPathMonitor
         monitor = NWPathMonitor()
         let queue = DispatchQueue(label: "Monitor")

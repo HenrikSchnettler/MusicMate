@@ -8,6 +8,10 @@
 import SwiftUI
 
 struct OfflineView: View {
+    init() {
+        
+    }
+    
     // This is the main body of the OfflineView
     var body: some View {
         // Vertical stack that contains all the elements

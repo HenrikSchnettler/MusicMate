@@ -6,105 +6,56 @@
 //
 
 import SwiftUI
-import MusicKit
 import AVFoundation
-import AVKit
 
 struct ExploreNowView: View {
-    // Detects the lifecycle phase of the current scene, e.g., whether the app is in the background or foreground.
+    // Environment property to monitor the app's scene phase.
     @Environment(\.scenePhase) var scenePhase
-    // Provides information about the current appearance (light or dark) mode of the app.
+    // Environment property to access the current color scheme (light or dark mode) used by the system.
     @Environment(\.colorScheme) var colorScheme
-    // Reference to the MusicKitManager to interact with Apple's MusicKit API.
-    @EnvironmentObject var musicKitManager: MusicKitManager
-    // State variable that holds the user's personal music station.
-    @State var personalStation: Station?
-    // Reference to the audio player which can stream music previews.
-    @StateObject var audioPlayer = AudioPlayer(player: AVQueuePlayer())
-    
-    // State variable that determines whether the sheet should be shown.
-    @State private var showSheet = true
-    
-    // Defines the default selection for the destination in the app.
-    @State var destinationSelection: DestinationItem = DestinationItem(id: nil, name: NSLocalizedString("Library", comment: ""),isLibrary: true)
-    
-    // Defines the background view based on the current state of the audio player.
-    @ViewBuilder
-    private var backgroundView: some View {
-        // If there's no audio queued up, show a linear gradient as the background.
-        if audioPlayer.queueCount == 0 {
-            LinearGradient(gradient: Gradient(colors: [Color.themeAccent, Color.themeTertiary, Color.themeSecondary]), startPoint: .leading, endPoint: .trailing)
-        }
-        // If there's audio in the queue, show the artwork for the current song.
-        else if let staticArtwork = audioPlayer.queue.first?.AppleMusicExtendedAlbum?.attributes.artwork.url, audioPlayer.queueCount > 0 {
-            AsyncImage(url: URL(string: String(staticArtwork).replacingOccurrences(of: "{w}", with: "150").replacingOccurrences(of: "{h}", with: "40").replacingOccurrences(of: "{f}", with: "png"))) { image in
-                image.shadow(radius: 8)
-            } placeholder: {
-                // Placeholder while the artwork image is loading.
-            }
-            .frame(width: 150, height: 40)
-        }
+    // ObservedObject ViewModel that holds the data and business logic for this view.
+    @ObservedObject var vm: ExploreNowViewModel
+
+    // Initializes the view with a ViewModel.
+    init(vm: ExploreNowViewModel) {
+        self.vm = vm
     }
-    
+
     var body: some View {
+        // GeometryReader is used to read the size of the entire view, allowing dynamic sizing of child components.
         GeometryReader { wholeViewGeometry in
             VStack {
-                Group {
-                    // If there's audio in the queue, display the card stack view.
-                    if audioPlayer.queueCount > 0 {
-                        CardStackView(destinationSelection: $destinationSelection)
-                            .environmentObject(audioPlayer)
-                            .onAppear {
-                                // Actions to be performed when CardStackView appears.
-                            }
-                    }
-                    // If the personal station hasn't loaded yet, show a skeleton loading animation.
-                    else {
+                Group { // Group is used to conditionally present one of its child views.
+                    if vm.queueIsNotEmpty {
+                        // CardStackView is presented if there are items in the queue.
+                        CardStackView(vm: CardStackViewModel(audioPlayer: vm.audioPlayer), destinationSelection: $vm.destinationSelection)
+                            .environmentObject(vm.audioPlayer) // Passes the audioPlayer as an environment object to the CardStackView.
+                    } else {
+                        // SkeletonCardView is shown as a placeholder when the queue is empty, indicating loading or empty state.
                         SkeletonCardView()
                     }
                 }
-                .frame(height: wholeViewGeometry.size.height * 0.81) // Sets the height of the content to be 81% of the available screen height.
-                
-                Spacer() // Fills the remaining space in the VStack.
+                .frame(height: wholeViewGeometry.size.height * 0.81) // Sets the height of the Group to 81% of the whole view.
+
+                Spacer()
             }
-            .sheet(isPresented: $showSheet) {
-                SwipeHistoryView(destinationSelection: $destinationSelection)
-                    .environmentObject(audioPlayer)
-                    // Define behavior and appearance properties for the sheet.
-                    .presentationDetents([.fraction(0.175), .medium, .large])
-                    .interactiveDismissDisabled(true)
+            .sheet(isPresented: $vm.showSheet) { // Presents a modal sheet based on the 'showSheet' boolean in the ViewModel.
+                // SwipeHistoryView allows users to review their interaction history, such as swiped cards.
+                SwipeHistoryView(destinationSelection: $vm.destinationSelection)
+                    .environmentObject(vm.audioPlayer)
+                    .presentationDetents([.fraction(0.175), .medium, .large]) // Configures the sheet's possible heights.
+                    .interactiveDismissDisabled(true) // Disables dismissal of the sheet by dragging.
                     .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.175)))
-                    .presentationCornerRadius(21)
-                    .presentationDragIndicator(.hidden)
+                    .presentationCornerRadius(21) // Sets the corner radius for the sheet's presentation.
+                    .presentationDragIndicator(.hidden) // Hides the drag indicator on the sheet.
             }
-            .cornerRadius(0)
-            
+            .cornerRadius(0) // Sets the corner radius of the entire view to 0.
             .onDisappear {
-                // Pause the audio when this view disappears.
-                if audioPlayer.queueCount > 0 {
-                    audioPlayer.pause()
-                }
+                vm.pausePlayer() // Pauses the audio player when the view is no longer visible.
             }
             .onChange(of: scenePhase) { newScenePhase in
-                // React to changes in the app's lifecycle.
-                switch newScenePhase {
-                case .active:
-                    print("App is active")
-                case .inactive:
-                    print("App is inactive")
-                case .background:
-                    // Pause the player when the app goes into the background.
-                    audioPlayer.pause()
-                @unknown default:
-                    print("Unknown state")
-                }
+                vm.onScenePhaseChange(newScenePhase) // Calls a method in the ViewModel to handle scene phase changes.
             }
         }
-    }
-}
-
-struct HomeView_Previews: PreviewProvider {
-    static var previews: some View {
-        ExploreNowView()
     }
 }
