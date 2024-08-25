@@ -147,7 +147,7 @@ class MusicKitManager: ObservableObject {
             //the country code of the user which is needed to access the right catalog of apple music
             let countryCode = try await MusicDataRequest.currentCountryCode
             //the superior developer token which is used to get the dynamic album art for the songs (used for personal use only)
-            let superiorDeveloperToken = "Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldlYlBsYXlLaWQifQ.eyJpc3MiOiJBTVBXZWJQbGF5IiwiaWF0IjoxNzAyNTAyMjM0LCJleHAiOjE3MDk3NTk4MzQsInJvb3RfaHR0cHNfb3JpZ2luIjpbImFwcGxlLmNvbSJdfQ.zzeMLmez71PLinP9GozYSQnF7NYyCiXHB9tKL3-cyu3LzyeRnYz0ejLj4CrNJs0dlNkFg9_mwKmMLueUAR-KRg"
+            let superiorDeveloperToken = "Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldlYlBsYXlLaWQifQ.eyJpc3MiOiJBTVBXZWJQbGF5IiwiaWF0IjoxNzI0MDk1NzA5LCJleHAiOjE3MzEzNTMzMDksInJvb3RfaHR0cHNfb3JpZ2luIjpbImFwcGxlLmNvbSJdfQ.upq7QFkHN3etQVMycsuIlNYz8ElqqZeNCZ2OJUTHie2IbRiExsZJejLdQgv0JysNSu-w63IcOW6GCVbImMV3Zw"
             let url = URL(string: "https://amp-api.music.apple.com/v1/catalog/\(countryCode)/songs/\(songId)/albums?extend=editorialArtwork,editorialVideo,extendedAssetUrls,offers")!
             var urlRequest = URLRequest(url: url)
             
