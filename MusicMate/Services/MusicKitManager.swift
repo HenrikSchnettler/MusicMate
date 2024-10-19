@@ -66,24 +66,37 @@ class MusicKitManager: ObservableObject {
     /// Fetches the ID of the user's personal music station.
     ///
     /// - Returns: The `MusicItemID` of the user's personal station.
-    func getUsersPersonalStationId() async -> MusicItemID{
+    func getUsersPersonalStationId() async -> MusicItemID?{
         do{
             //the country code of the user which is needed to access the right catalog of apple music
             let countryCode = try await MusicDataRequest.currentCountryCode
             
-            let url = URL(string: "https://api.music.apple.com/v1/catalog/\(countryCode)/stations?filter[identity]=personal")!
+            let url = URL(string: "https://api.music.apple.com/v1/me/recommendations/")!
 
             let dataRequest = MusicDataRequest(urlRequest: URLRequest(url: url))
             let dataResponse = try await dataRequest.response()
 
             let decoder = JSONDecoder()
-            let stationResponse = try decoder.decode(StationResponse.self, from: dataResponse.data)
+            let stationResponse = try decoder.decode(MusicPersonalRecommendationsResponse.self, from: dataResponse.data)
+           
+            // loop over all section inside the response object since we can´t identify which is the searched section
+            for section in stationResponse.recommendations {
+                // loop over all stations inside the current section
+                for station in section.stations {
+                    // Regex pattern which should match the users personal exploration station
+                    let regexPattern = "^ra\\.q-GAI6I[a-zA-Z0-9]{22}xYWJiNzBmZjc1N2FhOTVm$"
+                    if let _ = station.id.rawValue.range(of: regexPattern, options: .regularExpression) {
+                        // Return personal station id
+                        return station.id
+                    }
+                }
+            }
             
-            return stationResponse.data[0].id
+            return nil
         }
         catch{
             print("Error: \(error)")
-            return MusicItemID("")
+            return nil
         }
     }
     
@@ -126,10 +139,8 @@ class MusicKitManager: ObservableObject {
             let decoder = JSONDecoder()
             let trackResponse = try decoder.decode(TrackResponse.self, from: dataResponse.data)
             for item in trackResponse.data {
-                //check for every song in the response if it is currently in the users library
-                if await !self.checkIfSongIsInUserLibrary(songId: item.id.rawValue) {
-                    trackFoundCallback(item)
-                }
+                //we dont have to check anymore if the song is already in the users library or playlist since the new endpoint already excludes added songs
+                trackFoundCallback(item)
             }
         }
         catch {
