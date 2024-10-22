@@ -26,17 +26,13 @@ enum Tabs: String{
 
 struct MainView: View {
     // 'vm' is an instance of MainViewModel, used to manage the data and logic for the main interface.
-    @ObservedObject private var vm: MainViewModel
+    @StateObject var vm: MainViewModel
     
     // 'audioPlayer' is an instance of AudioPlayer, responsible for managing audio playback within the app.
-    @ObservedObject private var audioPlayer: AudioPlayer
+    @StateObject var audioPlayer: AudioPlayer
     
     // The initializer for MainView, requiring instances of MainViewModel and AudioPlayer.
-    init(vm: MainViewModel, audioPlayer: AudioPlayer) {
-        self.vm = vm
-        self.audioPlayer = audioPlayer
-    }
-
+    
     var body: some View {
         NavigationView {
             // Group acts as a container that doesn’t add any additional UI elements but groups the content.

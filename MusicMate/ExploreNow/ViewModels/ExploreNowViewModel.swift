@@ -11,8 +11,6 @@ import AVFoundation
 class ExploreNowViewModel: ObservableObject {
     
     @Published var showSheet: Bool = true // Controls the visibility of a modal sheet in the UI.
-    @Published var destinationSelection: DestinationItem = DestinationItem(id: nil, name: NSLocalizedString("Library", comment: ""), isLibrary: true)
-    // Holds the currently selected destination or item, initialized to a default 'Library' item.
 
     var audioPlayer: AudioPlayer // Manages audio playback, queueing, and player state.
     var musicKitManager: MusicKitManager // Handles interactions with the MusicKit API.
@@ -34,7 +32,7 @@ class ExploreNowViewModel: ObservableObject {
             audioPlayer.pause() // Pauses playback.
         }
     }
-
+    
     // Responds to changes in the app's scene phase, allowing the ViewModel to adjust its behavior based on app state.
     func onScenePhaseChange(_ newScenePhase: ScenePhase) {
         switch newScenePhase {

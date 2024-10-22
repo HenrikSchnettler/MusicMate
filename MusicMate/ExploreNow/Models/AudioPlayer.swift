@@ -23,7 +23,7 @@ class AudioPlayer: ObservableObject {
     // It also checks if the queue has less than 3 items and tries to load more.
     @Published var queueCount: Int = 0 {
         didSet {
-            if queueCount < 3 {
+            if (self.destinationSelection != nil) && (self.recommendationModeSelection != nil) && self.queueCount < 3 {
                 self.loadMoreItems()
             }
         }
@@ -31,6 +31,43 @@ class AudioPlayer: ObservableObject {
     
     // Represents the audio queue.
     @Published var queue: [AudioPlayerItem] = []
+    
+    // Holds the current selected destination for positive swipes
+    @Published var destinationSelection: DestinationItem? {
+        didSet {
+            saveDestinationSelctionToDefaults()
+            
+            Task {
+                if(self.destinationSelection != nil && self.recommendationModeSelection != nil){
+                    await clearQueue()
+                }
+            }
+        }
+    }
+    
+    // Holds all available destinations
+    @Published var confirmDestinations = [
+        DestinationItem(id: nil, name: NSLocalizedString("Library", comment: ""),action: .libraryMode)
+    ]
+    
+    // Holds the current selected recommendation Mode
+    @Published var recommendationModeSelection: RecommendationModeItem? {
+        didSet {
+            saveRecommendationModeToDefaults()
+            
+            Task {
+                if(self.destinationSelection != nil && self.recommendationModeSelection != nil){
+                    await clearQueue()
+                }
+            }
+        }
+    }
+    
+    // Holds all currently available recommendation modes
+    let recommendationModes = [
+        RecommendationModeItem(id: 1, displayText: NSLocalizedString("Personal", comment: ""), action: .personalMode),
+        RecommendationModeItem(id: 2, displayText: NSLocalizedString("Public", comment: ""), action: .publicMode)
+    ]
 
     // Initializer for the audio player.
     init(player: AVQueuePlayer) {
@@ -43,6 +80,10 @@ class AudioPlayer: ObservableObject {
         }
         
         self.player = player
+        
+        loadActiveRecommendationMode()
+        loadActiveDestination()
+        
         self.queueCount = 0
     }
     
@@ -55,8 +96,10 @@ class AudioPlayer: ObservableObject {
     private func loadMoreItems() {
         Task {
             weak var musicManager = MusicKitManager.shared
-            let personalStationId = await musicManager?.getUsersPersonalStationId()
-            let additionalItems = await musicManager?.getStationsNextTracks(stationId: personalStationId ?? "") { track in
+            
+            let stationId = recommendationModeSelection?.action == .personalMode ? await musicManager?.getUsersPersonalStationId() : await musicManager?.getPublicStationId()
+            
+            let additionalItems = await musicManager?.getStationsNextTracks(stationId: stationId ?? "") { track in
                 if let previewUrl = track.previewAssets?.first?.url {
                     Task {
                         // weak reference to the MusicKitManager instance
@@ -120,6 +163,67 @@ class AudioPlayer: ObservableObject {
     func updateQueueCount() {
         DispatchQueue.main.async { // Ensure this update is on the main thread.
             self.queueCount = self.queue.count
+        }
+    }
+    
+    // Updates the queue count.
+    func clearQueue() async {
+        //update is on the main thread.
+        DispatchQueue.main.async {
+            self.pause()
+            self.player.removeAllItems()
+            self.queue.removeAll()
+            self.queueCount = self.queue.count
+        }
+    }
+    
+    private func saveRecommendationModeToDefaults() {
+        // Save the selected object's ID
+        if let selectedObject = recommendationModeSelection {
+            UserDefaults.standard.set(recommendationModeSelection?.action.rawValue, forKey: "recommendationModeSelection")
+        }
+    }
+    
+    private func loadActiveRecommendationMode() {
+        // Load the saved properties
+        let savedActionString = UserDefaults.standard.string(forKey: "recommendationModeSelection")
+            
+        // Ensure that there is a valid saved object; otherwise, default to first option
+        if let action = savedActionString, let savedAction = RecommendationModeAction(rawValue: action) {
+            // Find the matching object in the options array by ID and status
+            if let matchedObject = self.recommendationModes.first(where: { $0.action == savedAction }) {
+                self.recommendationModeSelection = matchedObject
+            } else {
+                // If no match found, set the default (e.g., the first option)
+                self.recommendationModeSelection = recommendationModes.first
+            }
+        } else {
+            self.recommendationModeSelection = recommendationModes.first
+        }
+    }
+    
+    private func saveDestinationSelctionToDefaults() {
+        // Save the selected object's ID
+        if let selectedObject = destinationSelection {
+            UserDefaults.standard.set(destinationSelection?.action.rawValue, forKey: "destinationSelection")
+        }
+    }
+    
+    private func loadActiveDestination() {
+        // Load the saved properties
+        let savedActionString = UserDefaults.standard.string(forKey: "destinationSelection")
+            
+        // Ensure that there is a valid saved object; otherwise, default to first option
+        if let action = savedActionString, let savedAction = DestinationModeAction(rawValue: action) {
+            // Find the matching object in the options array by ID and status
+            if let matchedObject = self.confirmDestinations.first(where: { $0.action == savedAction }) {
+                self.destinationSelection = matchedObject
+            } else {
+                // If no match found, set the default (e.g., the first option)
+                self.destinationSelection = confirmDestinations.first
+            }
+        } else {
+            self.destinationSelection = confirmDestinations.first
         }
     }
 }

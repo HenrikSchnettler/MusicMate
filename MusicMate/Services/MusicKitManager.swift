@@ -63,9 +63,9 @@ class MusicKitManager: ObservableObject {
     
     // MARK: - Music Data Fetching
 
-    /// Fetches the ID of the user's personal music station.
+    /// Fetches the ID of the user's personal discovery music station.
     ///
-    /// - Returns: The `MusicItemID` of the user's personal station.
+    /// - Returns: The `MusicItemID` of the user's personal discovery station.
     func getUsersPersonalStationId() async -> MusicItemID?{
         do{
             //the country code of the user which is needed to access the right catalog of apple music
@@ -98,6 +98,14 @@ class MusicKitManager: ObservableObject {
             print("Error: \(error)")
             return nil
         }
+    }
+    
+    /// Fetches the ID of the public discovery music station.
+    ///
+    /// - Returns: The `MusicItemID` of the public discovery station.
+    func getPublicStationId() async -> MusicItemID?{
+        // public discovery playlist id as optained from apple music web client
+        return MusicItemID("ra.q-GAI6IDA1ZmYwZGUyZjI2ZTcwOGMxYWJiNzBmZjc1N2FhOTVm")
     }
     
     /// Fetches the user's social profile from the Apple Music API. (Not ready yet)

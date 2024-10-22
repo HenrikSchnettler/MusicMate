@@ -12,12 +12,6 @@ struct SwipeHistoryView: View {
     // Reference to Core Data's managed object context.
     @Environment(\.managedObjectContext) private var viewContext
     
-    // Binding to handle destination selection.
-    @Binding var destinationSelection: DestinationItem
-    let confirmDestinations = [
-        DestinationItem(id: nil, name: NSLocalizedString("Library", comment: ""),isLibrary: true)
-    ]
-    
     // A fetch request to retrieve songs sorted by the time they were swiped.
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \SongHistory.timestamp, ascending: false)],
@@ -34,6 +28,28 @@ struct SwipeHistoryView: View {
         NavigationView{
             GeometryReader { fullGeometry in
                 VStack(){
+                    HStack{
+                        Picker("", selection: $filterBySelection) {
+                            HStack {
+                                Text("All")
+                            }
+                            .tag(0)
+                            
+                            HStack {
+                                Image(systemName: "checkmark.circle")
+                                    .foregroundColor(.green)
+                            }
+                            .tag(1)
+                            
+                            HStack {
+                                Image(systemName: "xmark.circle")
+                                    .foregroundColor(.red)
+                            }
+                            .tag(2)
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                    }
+                    .padding(.horizontal)
                     List{
                         Section(header: Text("The last swipes")){
                             ForEach(historySongs) { item in
@@ -103,8 +119,8 @@ struct SwipeHistoryView: View {
                 // Picker for changing the destination.
                 ToolbarItem(placement: .navigationBarLeading) {
                     HStack{
-                        Picker("Destination", selection: $destinationSelection) {
-                            ForEach(confirmDestinations, id: \.id) { item in
+                        Picker("Destination", selection: $audioPlayer.destinationSelection) {
+                            ForEach(audioPlayer.confirmDestinations, id: \.id) { item in
                                 Text(item.name).tag(item)
                             }
                         }
@@ -115,6 +131,26 @@ struct SwipeHistoryView: View {
                         .accentColor(.white)
                         .background(
                             Color.themeAccent
+                        )
+                        .cornerRadius(32)
+                    }
+                    .padding(.vertical)
+                }
+                // Picker for switching between personal and public mode.
+                ToolbarItem(placement: .navigationBarLeading) {
+                    HStack{
+                        Picker("Recommendation Mode", selection: $audioPlayer.recommendationModeSelection) {
+                            ForEach(audioPlayer.recommendationModes, id: \.id) { item in
+                                    Text(item.displayText).tag(item)
+                                }
+                            }
+                        .labelsHidden()
+                        .foregroundColor(.white)
+                        .font(.system(size: 15))
+                        .frame(minHeight: 30, maxHeight: 30, alignment: .center)
+                        .accentColor(.white)
+                        .background(
+                            Color.themeSecondary
                         )
                         .cornerRadius(32)
                     }
@@ -154,31 +190,6 @@ struct SwipeHistoryView: View {
                         }
                             //Spacer()
                         
-                    }
-                    .padding(.vertical)
-                }
-                // Picker for filtering songs by their status (All, Added, Not Added).
-                ToolbarItem(placement: .navigationBarLeading) {
-                    HStack{
-                        Picker("", selection: $filterBySelection) {
-                            HStack {
-                                Text("All")
-                            }
-                            .tag(0)
-                            
-                            HStack {
-                                Image(systemName: "checkmark.circle")
-                                    .foregroundColor(.green)
-                            }
-                            .tag(1)
-                            
-                            HStack {
-                                Image(systemName: "xmark.circle")
-                                    .foregroundColor(.red)
-                            }
-                            .tag(2)
-                        }
-                        .pickerStyle(SegmentedPickerStyle())
                     }
                     .padding(.vertical)
                 }

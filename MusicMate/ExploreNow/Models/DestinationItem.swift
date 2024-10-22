@@ -11,5 +11,11 @@ import MusicKit
 struct DestinationItem: Hashable {
     let id: MusicItemID?
     let name: String
-    let isLibrary: Bool
+    let action: DestinationModeAction
 }
+
+enum DestinationModeAction: String {
+    case libraryMode = "libraryMode"
+    case playlistMode = "playlistMode"
+}
+

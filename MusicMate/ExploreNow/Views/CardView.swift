@@ -39,9 +39,6 @@ struct CardView: View {
     // Placeholder value for the slider component.
     @State private var sliderValuePlaceholder: Double = 0
 
-    // Represents the selected destination for navigation.
-    @Binding var destinationSelection: DestinationItem
-
     // Provides the current state of the app (e.g. background, inactive, active).
     @Environment(\.scenePhase) var scenePhase
 
@@ -440,7 +437,7 @@ struct CardView: View {
     func positiveSwipeEndAction(wasLiked: Bool){
         Task{
             if let insertTrack = item.AppleMusicTrack {
-                if destinationSelection.isLibrary {
+                if ((audioPlayer.destinationSelection?.action) == DestinationModeAction(rawValue: "libraryMode")) {
                     try await MusicLibrary.shared.add(item.AppleMusicTrack!)
                     insertTrackIntoHistory(wasAdded: true, wasLiked: wasLiked, wasDisliked: false)
                 }
